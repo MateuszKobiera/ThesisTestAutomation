@@ -1,2 +1,2 @@
 class BasePageLocators:
-    login_button = 'login-screen_login'
+    login_button = "//button[@id='login-screen_login']"
