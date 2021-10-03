@@ -5,7 +5,7 @@ from frontend.Pages.base_page import BasePage
 
 
 @pytest.fixture
-def browser():
+def browser() -> webdriver:
     driver = webdriver.Chrome()
     page = BasePage(driver)
     driver.maximize_window()

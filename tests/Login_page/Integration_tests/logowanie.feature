@@ -34,7 +34,7 @@ Feature: Test login page
 
   Scenario: Otwieranie strony logowania z zainicjowanym użytkownikiem
     Given Jestem na stronie logowania
-    And Użytkownik jest zainicjowany
+    # And Użytkownik jest zainicjowany
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę główną
 
