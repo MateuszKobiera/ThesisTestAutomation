@@ -1,0 +1,5 @@
+selenium
+pytest
+pytest_bdd
+behave
+jwt
