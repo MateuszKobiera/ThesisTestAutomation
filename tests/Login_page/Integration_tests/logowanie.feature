@@ -1,14 +1,14 @@
 Feature: Test login page
   Jako użytkownik chcę zarejestrować i zalogować się do aplikacji
 
-  @pierwszy
+  @pierwszy @nieZainicjowany
   Scenario: Logowanie się bez zainicjowanego użytkownika
     Given Jestem na stronie logowania
-    And Użytkownik nie jest zainicjowany
+    # And Użytkownik nie jest zainicjowany
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę zasad i warunków
 
-    
+
   Scenario: Zatwierdzanie Zasad i warunków
     Given Jestem na stronie Zasad i warunków
     When Przeczytam i potwierdzę zasady i warunki
