@@ -3,5 +3,5 @@ class BasePage:
         self.driver = driver
 
     @property
-    def url(self):
+    def base_url(self):
         return 'http://localhost:3000/'
