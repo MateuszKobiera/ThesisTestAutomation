@@ -4,7 +4,7 @@ from selenium import webdriver
 from frontend.Pages.base_page import BasePage
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def browser() -> webdriver:
     driver = webdriver.Chrome()
     page = BasePage(driver)

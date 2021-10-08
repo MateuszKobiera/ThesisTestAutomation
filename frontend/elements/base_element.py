@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
@@ -18,9 +19,21 @@ class BaseElement:
         self.xpath = xpath
 
     def click(self):
-        self.driver.click()
+        """
+        Click on a element
+        :return:
+        """
+        try:
+            self.driver.click()
+        except StaleElementReferenceException:
+            self.driver.refresh()
+            self.driver.click()
 
     def get_text(self):
+        """
+        Get available text for an element
+        :return:
+        """
         return self.driver.text
 
     def wait_for_element(self, locator: str, timeout: int = 5, poll_frequency: float = 0.1) -> None:

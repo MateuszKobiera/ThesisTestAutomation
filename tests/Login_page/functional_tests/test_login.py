@@ -1,9 +1,8 @@
 from pytest_bdd import given, scenario, when, then
 from frontend.Locators.login_page import LoginPageLocators
-from frontend.Pages.login_page import LoginPage
 
 
-@scenario("logowanie.feature", "Logowanie się bez zainicjowanego użytkownika")
+@scenario("login.feature", "Logowanie się bez zainicjowanego użytkownika")
 def test_argumenty():
     pass
 

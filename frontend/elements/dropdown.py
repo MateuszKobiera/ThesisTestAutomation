@@ -18,9 +18,8 @@ class Dropdown(Input):
         self.wait_for_element(option_xpath)
         self.get_base_element(option_xpath).click()
 
-    def get_placeholder(self) -> str:
+    def get_value(self) -> str:
         """
-        #TODO change name to value from placeholder
         Pobranie tekstu wewnątrz listy rozwijanej
         :return:
         """
