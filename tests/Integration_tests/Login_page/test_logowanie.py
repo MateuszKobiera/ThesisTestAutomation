@@ -12,13 +12,13 @@ def test_argumenty():
 def open_browser(login_page):
     login_page.wait_for_element(LoginPageLocators.login_button)
     assert login_page.login_url == login_page.driver.current_url
-    dropdown = login_page.get_element(LoginPageLocators.tool_dropdown)
-    dropdown.choose_option('Operation')
-    login_page.get_element(LoginPageLocators.login_button).click()
 
 
 @when('Wpisuje poprawne dane logowania')
 def logowanie(login_page):
+    dropdown = login_page.get_element(LoginPageLocators.tool_dropdown)
+    dropdown.choose_option('Operation')
+    login_page.get_element(LoginPageLocators.login_button).click()
     username = login_page.get_element(LoginPageLocators.username_input)
     username.set_input('Admin')
     password = login_page.get_element(LoginPageLocators.password_input)

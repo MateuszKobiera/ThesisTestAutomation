@@ -20,6 +20,7 @@ class Dropdown(Input):
 
     def get_placeholder(self) -> str:
         """
+        #TODO change name to value from placeholder
         Pobranie tekstu wewnątrz listy rozwijanej
         :return:
         """

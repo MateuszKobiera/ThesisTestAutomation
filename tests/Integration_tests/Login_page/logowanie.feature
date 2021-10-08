@@ -12,7 +12,7 @@ Feature: Test login page
   Scenario: Zatwierdzanie Zasad i warunków
     Given Jestem na stronie Zasad i warunków
     When Przeczytam i potwierdzę zasady i warunki
-    Then Przekierowano na inicjacji
+    Then Przekierowano na stronę inicjacji
 
 
   Scenario: Wyświetlanie błędów podczas inicjacji bez danych
@@ -38,7 +38,7 @@ Feature: Test login page
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę główną
 
-
+ @AutomationOnly @ManualE2E
   Scenario Outline: Wyświetlanie błędów podczas logowania
     Given Jestem na stronie logowania
     When Wpisuje niepoprawne dane logowania "<login>" i "<haslo>"
@@ -56,6 +56,7 @@ Feature: Test login page
       | Admin | Abcdefghij1ą  |                        | Password must only contain alphanumerical characters |                   |
       | AA    | Smartspaces1! |                        |                                                      |Invalid credentials|
 
+  @AutomationOnly @ManualE2E
   Scenario Outline: Wyświetlanie błędów podczas inicjacji
     Given Jestem na stronie inicjacji
     And Użytkownik Admin jest zainicjowany, użytkownik User1 jest stworzony, nie zainicjowany
