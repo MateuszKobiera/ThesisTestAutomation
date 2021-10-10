@@ -22,5 +22,29 @@ def logowanie(login_page):
 
 
 @then('Przekierowano na stronę zasad i warunków')
-def logowanie(login_page):
-    assert login_page.terms_url == login_page.driver.current_url
+def step_impl(terms_page):
+    assert terms_page.url == terms_page.driver.current_url
+
+
+@pytest.mark.NoInit
+@scenario("login.feature", "Zatwierdzanie Zasad i warunków")
+def test_accept_terms_policy():
+    pass
+
+
+@given('Jestem na stronie zasad i warunków')
+def step_impl(logowanie, terms_page):
+    assert terms_page.url == terms_page.driver.current_url
+
+
+@when("Przeczytam i potwierdzę zasady i warunki")
+def step_impl(terms_page):
+    terms_page.scroll_terms_and_policy()
+    terms_page.accept_terms_and_policy()
+    terms_page.save()
+    terms_page.launch_initialization()
+
+
+@then("Przekierowano na stronę inicjacji")
+def step_impl(account_init_page):
+    assert account_init_page.url == account_init_page.driver.current_url

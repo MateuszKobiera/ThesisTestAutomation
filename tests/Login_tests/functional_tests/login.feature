@@ -10,7 +10,7 @@ Feature: Test login page
 
 
   Scenario: Zatwierdzanie Zasad i warunków
-    Given Jestem na stronie Zasad i warunków
+    Given Jestem na stronie zasad i warunków
     When Przeczytam i potwierdzę zasady i warunki
     Then Przekierowano na stronę inicjacji
 
