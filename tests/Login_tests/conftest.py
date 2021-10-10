@@ -1,6 +1,7 @@
 import pytest
 from selenium import webdriver
 
+from backend.login_api import LoginAPI
 from frontend.Pages.account_initalization_page import AccountInitializationPage
 from frontend.Pages.menu_page import MenuPage
 from frontend.Pages.terms_and_conditions_page import TermsAndConditionsPage
@@ -35,3 +36,8 @@ def accept_terms_conditions(login_page):
 @pytest.fixture
 def menu_page(browser: webdriver):
     return MenuPage(browser)
+
+
+@pytest.fixture
+def login_api():
+    return LoginAPI()

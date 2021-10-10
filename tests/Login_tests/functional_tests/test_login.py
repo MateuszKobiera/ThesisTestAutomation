@@ -1,6 +1,7 @@
 import pytest
 from pytest_bdd import given, scenario, when, then
 
+from backend.login_api import LoginAPI
 from frontend.Locators.menu_locators import MenuLocators
 
 
@@ -83,3 +84,13 @@ def step_impl(menu_page):
 @then('Kafelki są wyszarzone oprócz My Property i Edge Device Configuration')
 def step_impl(menu_page):
     menu_page.check_enabled_widgets((MenuLocators.my_property_widget, MenuLocators.edge_device_configuration_widget))
+
+
+@scenario("login.feature", "Otwieranie strony logowania z zainicjowanym użytkownikiem")
+def test_login_with_init():
+    pass
+
+
+@given('Użytkownik jest zainicjowany')
+def step_impl(login_page, login_api):
+    assert login_api.get_init_done()
