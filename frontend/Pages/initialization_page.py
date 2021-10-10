@@ -19,8 +19,8 @@ class InitializationPage(BasePage):
         Ustawienie hasła dla Admina
         :return:
         """
-        self.get_element(InitializationLocators.password_input).set_input(password)
-        self.get_element(InitializationLocators.password_confirmation_input).set_input(password_confirmation)
+        self.get_element(InitializationLocators.password_input).set_value(password)
+        self.get_element(InitializationLocators.password_confirmation_input).set_value(password_confirmation)
 
     def change_password(self) -> None:
         """

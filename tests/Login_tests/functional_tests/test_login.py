@@ -1,7 +1,6 @@
 import pytest
 from pytest_bdd import given, scenario, when, then
 
-from backend.login_api import LoginAPI
 from frontend.Locators.menu_locators import MenuLocators
 
 
@@ -36,7 +35,7 @@ def test_accept_terms_policy():
 
 
 @given('Jestem na stronie zasad i warunków')
-def step_impl(logowanie, terms_page):
+def step_impl(log_in, terms_page):
     assert terms_page.url == terms_page.driver.current_url
 
 
@@ -61,7 +60,7 @@ def test_account_init():
 
 @given('Jestem na stronie inicjacji danych')
 # Terms and conditions should be accepted already
-def step_impl(logowanie, account_init_page):
+def step_impl(log_in, account_init_page):
     assert account_init_page.url == account_init_page.driver.current_url
 
 

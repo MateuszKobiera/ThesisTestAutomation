@@ -19,14 +19,14 @@ class LoginPage(BasePage):
         Wpisanie nazwy użytkownika.
         :return:
         """
-        self.get_element(LoginPageLocators.username_input).set_input(username)
+        self.get_element(LoginPageLocators.username_input).set_value(username)
 
     def set_password(self, password: str) -> None:
         """
         Wpisanie hasła dla użytkownika
         :return:
         """
-        self.get_element(LoginPageLocators.password_input).set_input(password)
+        self.get_element(LoginPageLocators.password_input).set_value(password)
 
     def login(self) -> None:
         """
