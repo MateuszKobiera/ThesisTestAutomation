@@ -26,10 +26,7 @@ Feature: Test login page
     Given Jestem na stronie inicjacji danych
     When Wpisuje poprawne dane inicjacji
     Then Przekierowano na stronę główną
-    And Kafelki są wyszarzone oprócz "<powiazane>"
-    | powiazane                 |
-    | My Property               |
-    | Edge device configuration |
+    And Kafelki są wyszarzone oprócz My Property i Edge Device Configuration
 
 
   Scenario: Otwieranie strony logowania z zainicjowanym użytkownikiem

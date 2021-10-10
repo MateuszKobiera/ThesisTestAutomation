@@ -2,6 +2,7 @@ import pytest
 from selenium import webdriver
 
 from frontend.Pages.account_initalization_page import AccountInitializationPage
+from frontend.Pages.menu_page import MenuPage
 from frontend.Pages.terms_and_conditions_page import TermsAndConditionsPage
 
 
@@ -21,3 +22,16 @@ def logowanie(login_page):
 @pytest.fixture
 def account_init_page(browser: webdriver):
     return AccountInitializationPage(browser)
+
+
+@pytest.fixture
+def accept_terms_conditions(login_page):
+    login_page.choose_mode('Configuration')
+    login_page.set_username('Admin')
+    login_page.set_password('Smartspaces1!')
+    login_page.login()
+
+
+@pytest.fixture
+def menu_page(browser: webdriver):
+    return MenuPage(browser)

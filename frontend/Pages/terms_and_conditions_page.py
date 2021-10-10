@@ -22,9 +22,9 @@ class TermsAndConditionsPage(BaseModal):
         terms_textbox = self.get_element(TermsAndConditionsLocators.terms_condition_textbox)
         terms_textbox.click()
         self.driver.execute_script('var terms = document.getElementById("terms-and-conditions-textbox");'
-                                  'terms.scrollTop = terms.scrollHeight;')
+                                   'terms.scrollTop = terms.scrollHeight;')
         self.driver.execute_script('var privacy = document.getElementById("privacy-policy-textbox");'
-                                  'privacy.scrollTop = privacy.scrollHeight;')
+                                   'privacy.scrollTop = privacy.scrollHeight;')
 
     def accept_terms_and_policy(self):
         """
@@ -45,4 +45,3 @@ class TermsAndConditionsPage(BaseModal):
         """
         self.wait_for_element(TermsAndConditionsLocators.initialize_button)
         self.get_element(TermsAndConditionsLocators.initialize_button).click()
-        

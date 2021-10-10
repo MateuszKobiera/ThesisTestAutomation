@@ -1,0 +1,22 @@
+from selenium import webdriver
+
+from frontend.Locators.menu_locators import MenuLocators
+from frontend.Pages.base_page import BasePage
+
+
+class MenuPage(BasePage):
+
+    def __init__(self, driver: webdriver) -> None:
+        """
+        :param driver:
+        """
+        super().__init__(driver)
+        self.url = self.base_url + '#/app/apps'
+        self.wait_for_element(MenuLocators.my_property_widget)
+
+    def check_enabled_widgets(self, widgets: tuple):
+        for widget in MenuLocators.all_main_widgets:
+            if widget in widgets:
+                assert self.get_element(widget).driver.is_displayed() is True
+            else:
+                assert self.get_element(widget).driver.is_displayed() is False

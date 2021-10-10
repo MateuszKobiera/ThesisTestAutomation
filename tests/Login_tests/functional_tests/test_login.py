@@ -1,6 +1,8 @@
 import pytest
 from pytest_bdd import given, scenario, when, then
 
+from frontend.Locators.menu_locators import MenuLocators
+
 
 @pytest.mark.NoInit
 @scenario("login.feature", "Logowanie się bez zainicjowanego użytkownika")
@@ -48,3 +50,36 @@ def step_impl(terms_page):
 @then("Przekierowano na stronę inicjacji")
 def step_impl(account_init_page):
     assert account_init_page.url == account_init_page.driver.current_url
+
+
+@pytest.mark.NoInit
+@scenario("login.feature", "Inicjacja użytkownika po logowaniu")
+def test_account_init():
+    pass
+
+
+@given('Jestem na stronie inicjacji danych')
+# Terms and conditions should be accepted already
+def step_impl(logowanie, account_init_page):
+    assert account_init_page.url == account_init_page.driver.current_url
+
+
+@when("Wpisuje poprawne dane inicjacji")
+def step_impl(account_init_page):
+    account_init_page.set_company('ABB')
+    account_init_page.set_first_name('John')
+    account_init_page.set_last_name('Smith')
+    account_init_page.set_initials('JS')
+    account_init_page.set_email('john.smith@abc.asd')
+    account_init_page.set_phone('123123123')
+    account_init_page.save()  # bug? different modal
+
+
+@then("Przekierowano na stronę główną")
+def step_impl(menu_page):
+    assert menu_page.url == menu_page.driver.current_url
+
+
+@then('Kafelki są wyszarzone oprócz My Property i Edge Device Configuration')
+def step_impl(menu_page):
+    menu_page.check_enabled_widgets((MenuLocators.my_property_widget, MenuLocators.edge_device_configuration_widget))

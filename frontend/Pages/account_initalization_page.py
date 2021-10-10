@@ -12,6 +12,21 @@ class AccountInitializationPage(BaseModal):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/account/activation'
+        self.wait_for_element(AccountInitializationLocators.company_input)
+
+    def save(self):
+        """
+        Zapisanie ustawień
+        :return:
+        """
+        self.get_element(AccountInitializationLocators.save_button).click()
+
+    def cancel(self):
+        """
+        Anulowanie ustawień
+        :return:
+        """
+        self.get_element(AccountInitializationLocators.cancel_button).click()
 
     def set_company(self, company: str):
         """
