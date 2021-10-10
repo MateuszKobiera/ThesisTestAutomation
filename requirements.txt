@@ -4,3 +4,5 @@ pytest_bdd
 behave
 jwt
 pytest-pycharm
+requests
+pytest-html
