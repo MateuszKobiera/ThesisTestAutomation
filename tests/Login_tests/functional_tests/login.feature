@@ -10,9 +10,9 @@ Feature: Test login page
 
 
   Scenario: Zatwierdzanie Zasad i warunków
-    Given Jestem na stronie Zasad i warunków
+    Given Jestem na stronie zasad i warunków
     When Przeczytam i potwierdzę zasady i warunki
-    Then Przekierowano na inicjacji
+    Then Przekierowano na stronę inicjacji
 
 
   Scenario: Wyświetlanie błędów podczas inicjacji bez danych
@@ -26,19 +26,16 @@ Feature: Test login page
     Given Jestem na stronie inicjacji danych
     When Wpisuje poprawne dane inicjacji
     Then Przekierowano na stronę główną
-    And Kafelki są wyszarzone oprócz "<powiazane>"
-    | powiazane                 |
-    | My Property               |
-    | Edge device configuration |
+    And Kafelki są wyszarzone oprócz My Property i Edge Device Configuration
 
 
   Scenario: Otwieranie strony logowania z zainicjowanym użytkownikiem
     Given Jestem na stronie logowania
-    And Użytkownik jest zainicjowany
+    # And Użytkownik jest zainicjowany
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę główną
 
-
+ @AutomationOnly @ManualE2E
   Scenario Outline: Wyświetlanie błędów podczas logowania
     Given Jestem na stronie logowania
     When Wpisuje niepoprawne dane logowania "<login>" i "<haslo>"
@@ -56,6 +53,7 @@ Feature: Test login page
       | Admin | Abcdefghij1ą  |                        | Password must only contain alphanumerical characters |                   |
       | AA    | Smartspaces1! |                        |                                                      |Invalid credentials|
 
+  @AutomationOnly @ManualE2E
   Scenario Outline: Wyświetlanie błędów podczas inicjacji
     Given Jestem na stronie inicjacji
     And Użytkownik Admin jest zainicjowany, użytkownik User1 jest stworzony, nie zainicjowany
