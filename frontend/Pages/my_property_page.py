@@ -2,6 +2,7 @@ from selenium import webdriver
 
 from frontend.Locators.my_property_locators import MyPropertyLocators
 from frontend.Pages.base_page import BasePage
+from frontend.components.table import Table
 
 
 class MyPropertyPage(BasePage):
@@ -269,3 +270,7 @@ class MyPropertyPage(BasePage):
         :return:
         """
         self.get_element(MyPropertyLocators.cancel_button).click()
+
+    def get_structure_table(self):
+        return self.get_component(MyPropertyLocators.structure_table).get_table(unique_column_name='NAME')
+

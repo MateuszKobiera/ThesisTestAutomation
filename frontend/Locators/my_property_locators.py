@@ -14,5 +14,6 @@ class MyPropertyLocators:
     get_coordinates_button = '//*[@id="overview-tab_get-gps"]', "Button"
     save_button = "//span[text()='Save']//ancestor::button", "Button"
     cancel_button = "//span[text()='Cancel']//ancestor::button", "Button"
+    structure_table = "//table", "Table"
 
 
