@@ -24,7 +24,7 @@ class Input(BaseElement):
         validation_xpath = self.xpath + '/div[contains(@class,"validation")]'
         return self.get_base_element(validation_xpath).get_text()
 
-    def set_input(self, input_text: str, clear_input_before: bool = True) -> None:
+    def set_value(self, input_text: str, clear_input_before: bool = True) -> None:
         """
         Ustawienie wartości do pola tekstowego
         :param input_text:

@@ -20,3 +20,6 @@ class MenuPage(BasePage):
                 assert self.get_element(widget).driver.is_displayed() is True
             else:
                 assert self.get_element(widget).driver.is_displayed() is False
+
+    def go_to_my_property(self) -> None:
+        self.get_element(MenuLocators.my_property_widget).click()

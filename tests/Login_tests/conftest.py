@@ -3,21 +3,12 @@ from selenium import webdriver
 
 from backend.login_api import LoginAPI
 from frontend.Pages.account_initalization_page import AccountInitializationPage
-from frontend.Pages.menu_page import MenuPage
 from frontend.Pages.terms_and_conditions_page import TermsAndConditionsPage
 
 
 @pytest.fixture
 def terms_page(browser: webdriver):
     return TermsAndConditionsPage(browser)
-
-
-@pytest.fixture
-def logowanie(login_page):
-    login_page.choose_mode('Configuration')
-    login_page.set_username('Admin')
-    login_page.set_password('Smartspaces1!')
-    login_page.login()
 
 
 @pytest.fixture
@@ -31,11 +22,6 @@ def accept_terms_conditions(login_page):
     login_page.set_username('Admin')
     login_page.set_password('Smartspaces1!')
     login_page.login()
-
-
-@pytest.fixture
-def menu_page(browser: webdriver):
-    return MenuPage(browser)
 
 
 @pytest.fixture

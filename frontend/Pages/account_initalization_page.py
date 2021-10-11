@@ -34,7 +34,7 @@ class AccountInitializationPage(BaseModal):
         :param company: nazwa firmy
         :return:
         """
-        self.get_element(AccountInitializationLocators.company_input).set_input(company)
+        self.get_element(AccountInitializationLocators.company_input).set_value(company)
 
     def set_first_name(self, first_name: str):
         """
@@ -42,7 +42,7 @@ class AccountInitializationPage(BaseModal):
         :param first_name: Imię
         :return:
         """
-        self.get_element(AccountInitializationLocators.first_name_input).set_input(first_name)
+        self.get_element(AccountInitializationLocators.first_name_input).set_value(first_name)
 
     def set_last_name(self, last_name: str):
         """
@@ -50,7 +50,7 @@ class AccountInitializationPage(BaseModal):
         :param last_name: Nazwisko
         :return:
         """
-        self.get_element(AccountInitializationLocators.last_name_input).set_input(last_name)
+        self.get_element(AccountInitializationLocators.last_name_input).set_value(last_name)
 
     def set_initials(self, initials: str):
         """
@@ -58,7 +58,7 @@ class AccountInitializationPage(BaseModal):
         :param initials: Inicjały
         :return:
         """
-        self.get_element(AccountInitializationLocators.initials_input).set_input(initials)
+        self.get_element(AccountInitializationLocators.initials_input).set_value(initials)
 
     def set_email(self, email: str):
         """
@@ -66,7 +66,7 @@ class AccountInitializationPage(BaseModal):
         :param email: E-mail
         :return:
         """
-        self.get_element(AccountInitializationLocators.email_input).set_input(email)
+        self.get_element(AccountInitializationLocators.email_input).set_value(email)
 
     def set_phone(self, phone: str):
         """
@@ -74,4 +74,4 @@ class AccountInitializationPage(BaseModal):
         :param phone: Numer telefonu
         :return:
         """
-        self.get_element(AccountInitializationLocators.phone_input).set_input(phone)
+        self.get_element(AccountInitializationLocators.phone_input).set_value(phone)
