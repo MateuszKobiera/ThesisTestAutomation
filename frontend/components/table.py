@@ -68,6 +68,14 @@ class Table:
         return table
 
     def delete_row(self, row_id: int = None, row_name: str = None) -> BaseModal:
+        """
+        Usunięcie wiersza
+        :param row_id: numer wiersza, parametr opcjonalny
+        :param row_name: unikalna nazwa wiersza, parametr opcjonalny
+        :return: modal z potwierdzeniem usunięcia
+        """
+        if not row_id and not row_name:
+            raise NameError('Należy wybrać, który wiersz usunąć poprzez parametr row_id lub row_name')
         if row_name:
             for row in self.get_table():
                 if row_name in row.values():
@@ -77,6 +85,16 @@ class Table:
         return BaseModal(self.driver)
 
     def duplicate_row(self, row_id: int = None, row_name: str = None, confirmation: bool = False) -> (BaseModal, None):
+        """
+        Duplikowanie wiersza
+        :param row_id: numer wiersza, parametr opcjonalny
+        :param row_name: unikalna nazwa wiersza, parametr opcjonalny
+        :param confirmation: czy po duplikowanie konieczne jest potwierdzenie?, parametr opcjonalny
+        :return: nic jeśli potwierdzenie nie jest wymagane,
+        modal z potwierdzeniem duplikowania jeśli potwierdzenie jest konieczne
+        """
+        if not row_id and not row_name:
+            raise NameError('Należy wybrać, który wiersz usunąć poprzez parametr row_id lub row_name')
         if row_name:
             for row in self.get_table():
                 if row_name in row.values():

@@ -271,6 +271,24 @@ class MyPropertyPage(BasePage):
         """
         self.get_element(MyPropertyLocators.cancel_button).click()
 
-    def get_structure_table(self):
-        return self.get_component(MyPropertyLocators.structure_table).get_table(unique_column_name='NAME')
+    def _structure_table(self) -> Table:
+        """
+        Pobranie komponentu tabeli
+        :return: sterownik tabeli
+        """
+        return self.get_component(MyPropertyLocators.structure_table)
+
+    def get_structure_table(self) -> dict:
+        """
+        Pobranie tabeli struktury jako słownika
+        :return:
+        """
+        return self._structure_table().get_table()
+
+# TODO dodanie obsługi akcji w tabeli
+    def delete_structure(self, structure: str):
+        return self._structure_table().delete_row(row_name=structure)
+
+    def duplicate_structure(self, structure: str):
+        return self._structure_table().duplicate_row(row_name=structure, confirmation=True)
 
