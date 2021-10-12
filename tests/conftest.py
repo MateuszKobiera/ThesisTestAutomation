@@ -11,6 +11,7 @@ def browser() -> webdriver:
     driver = webdriver.Chrome()
     page = BasePage(driver)
     driver.maximize_window()
+    driver.delete_all_cookies()
     driver.get(page.base_url)
     yield driver
     driver.quit()

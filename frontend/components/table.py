@@ -2,7 +2,6 @@ from copy import copy
 
 from selenium import webdriver
 
-from frontend.Modals.base_modal import BaseModal
 from frontend.elements.base_element import BaseElement
 
 
@@ -67,7 +66,7 @@ class Table:
             table[row_name] = copy(table_row)
         return table
 
-    def delete_row(self, row_id: int = None, row_name: str = None) -> BaseModal:
+    def delete_row(self, row_id: int = None, row_name: str = None) -> webdriver:
         """
         Usunięcie wiersza
         :param row_id: numer wiersza, parametr opcjonalny
@@ -82,9 +81,9 @@ class Table:
                     row_id = row
         delete_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"close")]'
         self.get_element(delete_button).click()
-        return BaseModal(self.driver)
+        return self.driver
 
-    def duplicate_row(self, row_id: int = None, row_name: str = None, confirmation: bool = False) -> (BaseModal, None):
+    def duplicate_row(self, row_id: int = None, row_name: str = None, confirmation: bool = False) -> (webdriver, None):
         """
         Duplikowanie wiersza
         :param row_id: numer wiersza, parametr opcjonalny
@@ -102,7 +101,7 @@ class Table:
         duplicate_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"copy")]'
         self.get_element(duplicate_button).click()
         if confirmation is True:
-            return BaseModal(self.driver)
+            return self.driver
         else:
             return None
 

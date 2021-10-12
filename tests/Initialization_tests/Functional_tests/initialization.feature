@@ -10,5 +10,5 @@ Feature: Inicjacja Admina
   Scenario: Walidacja podczas Inicjacji
     Given Jestem na stronie inicjacji
     When Wpisuje niepoprawne dane inicjacji
-    Then Jestem na stronie inicjacji
+    Then Nie przekierowano strony inicjacji
     And Wyświetlono błędy z informacją o wymaganych danych

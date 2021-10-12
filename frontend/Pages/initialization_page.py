@@ -28,3 +28,17 @@ class InitializationPage(BasePage):
         :return:
         """
         self.get_element(InitializationLocators.change_password_button).click()
+
+    def get_first_password_validation(self) -> str:
+        """
+        Pobranie walidacji dla pierwszego pola do wpisania danych hasła
+        :return: tekst walidacji
+        """
+        return self.get_element(InitializationLocators.password_input).get_validation()
+
+    def get_confirm_password_validation(self) -> str:
+        """
+        Pobranie walidacji dla pola do potwierdzenia wpisania hasła
+        :return: tekst walidacji
+        """
+        return self.get_element(InitializationLocators.password_confirmation_input).get_validation()
