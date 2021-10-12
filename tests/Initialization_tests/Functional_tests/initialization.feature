@@ -11,4 +11,4 @@ Feature: Inicjacja Admina
     Given Jestem na stronie inicjacji
     When Wpisuje niepoprawne dane inicjacji
     Then Nie przekierowano strony inicjacji
-    And Wyświetlono błędy z informacją o wymaganych danych
+    And Wyświetlono błędy z informacją o wymaganych danych inicjacji hasła

@@ -12,7 +12,7 @@ class MenuPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/app/apps'
-        self.wait_for_element(MenuLocators.my_property_widget)
+        self.wait_for_element(MenuLocators.my_property_widget, timeout=15)
 
     def check_enabled_widgets(self, widgets: tuple):
         for widget in MenuLocators.all_main_widgets:

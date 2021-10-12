@@ -14,6 +14,13 @@ class LoginAPI(BaseAPI):
         """
         return True if self.send_request('get', self.init_done)['status'] == "CoreInitializationDone" else False
 
+    def get_initialization_status(self) -> str:
+        """
+        Pobranie statusu inicjacji Admina
+        :return:
+        """
+        return self.send_request('get', self.init_done)['status']
+
     def get_myself(self):
         """
         Pobranie danych zalogowanego użytkownika

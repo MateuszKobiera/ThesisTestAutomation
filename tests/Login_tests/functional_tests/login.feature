@@ -4,26 +4,21 @@ Feature: Test login page
   @pierwszy @nieZainicjowany
   Scenario: Logowanie się bez zainicjowanego użytkownika
     Given Jestem na stronie logowania
-    # And Użytkownik nie jest zainicjowany
+    And "Admin" ma ustawione tylko hasło
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę zasad i warunków
 
 
   Scenario: Zatwierdzanie Zasad i warunków
     Given Jestem na stronie zasad i warunków
+    And "Admin" ma ustawione tylko hasło
     When Przeczytam i potwierdzę zasady i warunki
     Then Przekierowano na stronę inicjacji
 
 
-  Scenario: Wyświetlanie błędów podczas inicjacji bez danych
-    Given Jestem na stronie inicjacji
-    When Nie wpisuje danych
-    Then Przekierowano na stronę inicjacji
-    And Wyświetlono błędy z informacją o wymaganych danych
-
-
-  Scenario: Inicjacja użytkownika po logowaniu
+  Scenario: Inicjacja Admina po logowaniu
     Given Jestem na stronie inicjacji danych
+    And Zasady i warunki zostały potwierdzone
     When Wpisuje poprawne dane inicjacji
     Then Przekierowano na stronę główną
     And Kafelki są wyszarzone oprócz My Property i Edge Device Configuration
@@ -34,6 +29,13 @@ Feature: Test login page
     And Użytkownik jest zainicjowany
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę główną
+
+   @Manual?
+  Scenario: Wyświetlanie błędów podczas inicjacji bez danych
+    Given Jestem na stronie inicjacji konta
+    When Nie wpisuje danych
+    Then Przekierowano na stronę inicjacji konta
+    And Wyświetlono błędy z informacją o wymaganych danych logowania
 
  @AutomationOnly @ManualE2E
   Scenario Outline: Wyświetlanie błędów podczas logowania

@@ -37,7 +37,7 @@ def step_impl(initialization_page):
     initialization_page.change_password()
 
 
-@then("Wyświetlono błędy z informacją o wymaganych danych")
+@then("Wyświetlono błędy z informacją o wymaganych danych inicjacji hasła")
 def step_impl(initialization_page):
     # TODO Check more cases
     assert initialization_page.get_first_password_validation() == 'Password must have at least 10 characters'

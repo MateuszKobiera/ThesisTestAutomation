@@ -36,3 +36,10 @@ class Input(BaseElement):
             self.get_base_element(input_xpath).driver.send_keys(Keys.CONTROL + "a")
             self.get_base_element(input_xpath).driver.send_keys(Keys.DELETE)
         self.get_base_element(input_xpath).driver.send_keys(input_text)
+
+    def get_value(self) -> str:
+        """
+        Pobranie wartości pola do wpisania danych
+        :return:
+        """
+        return self.get_base_element(self.xpath + '//input').driver.get_attribute('value')

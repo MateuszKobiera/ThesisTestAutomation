@@ -263,6 +263,7 @@ class MyPropertyPage(BasePage):
         :return:
         """
         self.get_element(MyPropertyLocators.save_button).click()
+        self.wait_for_element(MyPropertyLocators.property_name_input)
 
     def cancel(self):
         """
