@@ -2,6 +2,7 @@ from selenium import webdriver
 
 from frontend.Locators.my_property_locators import MyPropertyLocators
 from frontend.Pages.base_page import BasePage
+from frontend.components.table import Table
 
 
 class MyPropertyPage(BasePage):
@@ -262,6 +263,7 @@ class MyPropertyPage(BasePage):
         :return:
         """
         self.get_element(MyPropertyLocators.save_button).click()
+        self.wait_for_element(MyPropertyLocators.property_name_input)
 
     def cancel(self):
         """
@@ -269,3 +271,25 @@ class MyPropertyPage(BasePage):
         :return:
         """
         self.get_element(MyPropertyLocators.cancel_button).click()
+
+    def _structure_table(self) -> Table:
+        """
+        Pobranie komponentu tabeli
+        :return: sterownik tabeli
+        """
+        return self.get_component(MyPropertyLocators.structure_table)
+
+    def get_structure_table(self) -> dict:
+        """
+        Pobranie tabeli struktury jako słownika
+        :return:
+        """
+        return self._structure_table().get_table()
+
+# TODO dodanie obsługi akcji w tabeli
+    def delete_structure(self, structure: str):
+        return self._structure_table().delete_row(row_name=structure)
+
+    def duplicate_structure(self, structure: str):
+        return self._structure_table().duplicate_row(row_name=structure, confirmation=True)
+

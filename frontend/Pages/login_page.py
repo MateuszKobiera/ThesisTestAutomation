@@ -21,12 +21,26 @@ class LoginPage(BasePage):
         """
         self.get_element(LoginPageLocators.username_input).set_value(username)
 
+    def get_username_validation(self) -> None:
+        """
+        Pobranie walidacji dla nazwy użytkownika
+        :return:
+        """
+        return self.get_element(LoginPageLocators.username_input).get_validation()
+
     def set_password(self, password: str) -> None:
         """
         Wpisanie hasła dla użytkownika
-        :return:
+        :return: tekst walidacji
         """
         self.get_element(LoginPageLocators.password_input).set_value(password)
+
+    def get_password_validation(self) -> None:
+        """
+        Pobranie walidacji dla hasła użytkownika
+        :return: tekst walidacji
+        """
+        return self.get_element(LoginPageLocators.password_input).get_validation()
 
     def login(self) -> None:
         """

@@ -1,7 +1,7 @@
 from selenium import webdriver
 
 from frontend.Locators.account_initialization_locators import AccountInitializationLocators
-from frontend.componnents.base_modal import BaseModal
+from frontend.Modals.base_modal import BaseModal
 
 
 class AccountInitializationPage(BaseModal):
@@ -12,7 +12,7 @@ class AccountInitializationPage(BaseModal):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/account/activation'
-        self.wait_for_element(AccountInitializationLocators.company_input)
+        self.wait_for_element(AccountInitializationLocators.company_input, timeout=20)
 
     def save(self):
         """

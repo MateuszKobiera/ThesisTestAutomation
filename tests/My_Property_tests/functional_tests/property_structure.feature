@@ -5,7 +5,7 @@ Feature: My Property - structure tab
   Scenario: Wyświetlanie okna dialogowego dla budynku
     Given Jestem na stronie My property - Structure
     And Nie dodano budynku
-    When Kliknę w przycisk 'Add structure'
+    When Kliknę w przycisk "Add structure"
     Then Pokazuje się okno dialogowe dla dodania budynku
 
   Scenario: Dodanie pierwszego budynku

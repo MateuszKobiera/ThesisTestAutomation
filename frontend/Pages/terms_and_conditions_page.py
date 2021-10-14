@@ -1,10 +1,10 @@
 from selenium import webdriver
 
 from frontend.Locators.terms_condition_locators import TermsAndConditionsLocators
-from frontend.componnents.base_modal import BaseModal
+from frontend.Pages.base_page import BasePage
 
 
-class TermsAndConditionsPage(BaseModal):
+class TermsAndConditionsPage(BasePage):
 
     def __init__(self, driver: webdriver) -> None:
         """
@@ -13,6 +13,20 @@ class TermsAndConditionsPage(BaseModal):
         super().__init__(driver)
         self.url = self.base_url + '#/system/initialization'
         self.wait_for_element(TermsAndConditionsLocators.terms_condition_textbox)
+
+    def save(self):
+        """
+        Kliknięcie przycisku 'save' lub 'accept'
+        :return:
+        """
+        self.get_element(TermsAndConditionsLocators.save_button).click()
+
+    def cancel(self):
+        """
+        Kliknięcie przycisku 'Cancel'
+        :return:
+        """
+        self.get_element(TermsAndConditionsLocators.cancel_button).click()
 
     def scroll_terms_and_policy(self):
         """
