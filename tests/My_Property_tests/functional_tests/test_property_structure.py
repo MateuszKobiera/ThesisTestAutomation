@@ -17,12 +17,13 @@ def step_impl(log_in, my_property_page):
 
 @given('Nie dodano budynku')
 def step_impl(my_property_page):
-    my_property_page.get_structure_table()
+    assert my_property_page.get_structure_table()['ELEMENT TYPE'] == \
+           'No element - Click on \'Add to structure\' to insert first structural element'
 
 
 @when('Kliknę w przycisk "Add structure"')
 def step_impl(my_property_page):
-    assert my_property_page.get_country() == 'Poland'
+    add_to_structure_modal = my_property_page.add_new_structure()
 
 
 @then('Pokazuje się okno dialogowe dla dodania budynku')

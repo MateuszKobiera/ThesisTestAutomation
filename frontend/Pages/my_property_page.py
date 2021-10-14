@@ -1,6 +1,7 @@
 from selenium import webdriver
 
 from frontend.Locators.my_property_locators import MyPropertyLocators
+from frontend.Modals.my_property_add_to_structure import AddToStructureModal
 from frontend.Pages.base_page import BasePage
 from frontend.components.table import Table
 
@@ -263,7 +264,7 @@ class MyPropertyPage(BasePage):
         :return:
         """
         self.get_element(MyPropertyLocators.save_button).click()
-        self.wait_for_element(MyPropertyLocators.property_name_input)
+        self.wait_for_element(MyPropertyLocators.property_name_input, timeout=7)
 
     def cancel(self):
         """
@@ -292,4 +293,8 @@ class MyPropertyPage(BasePage):
 
     def duplicate_structure(self, structure: str):
         return self._structure_table().duplicate_row(row_name=structure, confirmation=True)
+
+    def add_new_structure(self) -> AddToStructureModal:
+        self.get_element(MyPropertyLocators.add_structure_button).click()
+        return AddToStructureModal(self.driver)
 
