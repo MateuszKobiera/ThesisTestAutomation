@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.expected_conditions import visibility_of_element_located
+from selenium.webdriver.support.expected_conditions import visibility_of_element_located, \
+    invisibility_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 
 from frontend.components.table import Table
@@ -52,6 +53,16 @@ class BasePage:
         :return:
         """
         WebDriverWait(self.driver, timeout, poll_frequency).until(visibility_of_element_located((By.XPATH, locator[0])))
+
+    def wait_for_element_to_disappear(self, locator: tuple, timeout: int = 5, poll_frequency: float = 0.1):
+        """
+        Oczekiwanie na zniknięcie elementu
+        :param locator: xpath i typ elementu, do oczekiwania
+        :param timeout: maksymalny czas czekania na element
+        :param poll_frequency: czas próbkowania co jaki jest sprawdzana widoczność elementu
+        :return:
+        """
+        WebDriverWait(self.driver, timeout, poll_frequency).until(invisibility_of_element_located((By.XPATH, locator[0])))
 
     def open_tab(self, tab_name:str) -> None:
         """

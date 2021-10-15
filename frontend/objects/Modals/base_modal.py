@@ -24,7 +24,9 @@ class BaseModal(BasePage):
         Kliknięcie przycisku 'save' lub 'accept'
         :return:
         """
-        self.get_element((self.save_xpath, 'Button')).click()
+        save_button = (self.save_xpath, 'Button')
+        self.get_element(save_button).click()
+        self.wait_for_element_to_disappear(save_button)
 
     def cancel(self) -> None:
         """

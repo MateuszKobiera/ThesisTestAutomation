@@ -36,7 +36,7 @@ class AddToStructureModal(BaseModal):
         :param name_type: Nazwa struktury
         :return:
         """
-        self.get_element(AddToStructureLocators.name_input).choose_option(name_type)
+        self.get_element(AddToStructureLocators.name_input).set_value(name_type)
 
     def get_name(self) -> str:
         """
@@ -58,7 +58,7 @@ class AddToStructureModal(BaseModal):
         :param usage_type: Użytek struktury
         :return:
         """
-        self.get_element(AddToStructureLocators.usage_dropdown).set_value(usage_type)
+        self.get_element(AddToStructureLocators.usage_dropdown).choose_option(usage_type)
 
     def get_usage(self) -> str:
         """
@@ -80,7 +80,7 @@ class AddToStructureModal(BaseModal):
         :param people_quantity: Liczba osób w strukturze
         :return:
         """
-        self.get_element(AddToStructureLocators.people_input).choose_option(people_quantity)
+        self.get_element(AddToStructureLocators.people_input).set_value(people_quantity)
 
     def get_people_quantity(self) -> str:
         """
@@ -102,7 +102,7 @@ class AddToStructureModal(BaseModal):
         :param gross_surface: Powierzchnia brutto w strukturze
         :return:
         """
-        self.get_element(AddToStructureLocators.gross_surface_input).choose_option(gross_surface)
+        self.get_element(AddToStructureLocators.gross_surface_input).set_value(gross_surface)
 
     def get_gross_surface(self) -> str:
         """
@@ -124,7 +124,7 @@ class AddToStructureModal(BaseModal):
         :param net_surface: Powierzchnia netto w strukturze
         :return:
         """
-        self.get_element(AddToStructureLocators.net_surface_input).choose_option(net_surface)
+        self.get_element(AddToStructureLocators.net_surface_input).set_value(net_surface)
 
     def get_net_surface(self) -> str:
         """
@@ -168,7 +168,7 @@ class AddToStructureModal(BaseModal):
         :param level_to_ground: Piętro dla elementu
         :return:
         """
-        self.get_element(AddToStructureLocators.level_to_ground_input).choose_option(level_to_ground)
+        self.get_element(AddToStructureLocators.level_to_ground_input).set_value(level_to_ground)
 
     def get_level_to_ground(self) -> str:
         """

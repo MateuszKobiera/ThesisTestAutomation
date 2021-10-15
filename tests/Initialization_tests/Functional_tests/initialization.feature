@@ -1,6 +1,6 @@
 # Created by mateu at 09.10.2021
 Feature: Inicjacja Admina
-  # Enter feature description here
+  # Sprawdzenia procesu inicjacji hasła dla użytkownika początkowego - Admin
 
   Scenario: Poprawna Inicjacja
     Given Jestem na stronie inicjacji

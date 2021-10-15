@@ -6,7 +6,7 @@ from frontend.objects.Pages.login_page import LoginPage
 from frontend.objects.Pages.menu_page import MenuPage
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def browser() -> webdriver:
     driver = webdriver.Chrome()
     page = BasePage(driver)
@@ -17,7 +17,7 @@ def browser() -> webdriver:
     driver.quit()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def login_page(browser: webdriver):
     return LoginPage(browser)
 

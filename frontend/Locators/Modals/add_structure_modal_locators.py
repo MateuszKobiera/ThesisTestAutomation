@@ -1,6 +1,6 @@
 class AddToStructureLocators:
     element_type_dropdown = '//*[@id="structureType"]', "Dropdown"
-    name_input = '//*[@id="overview-tab_people"]', "Input"
+    name_input = '//*[@id="name"]', "Input"
     usage_dropdown = '//*[@id="usage"]', "Dropdown"
     people_input = '//*[@id="people"]', "Input"
     gross_surface_input = '//*[@id="surfacegross"]', "Input"

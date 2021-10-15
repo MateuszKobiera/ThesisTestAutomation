@@ -2,7 +2,7 @@ from pytest_bdd import scenario, given, then, when
 
 
 @scenario("property_overview.feature", "Ustawienie poprawnych danych nieruchomości")
-def test_impl():
+def test_add_property():
     pass
 
 

@@ -32,10 +32,11 @@ class Input(BaseElement):
         :return:
         """
         input_xpath = self.xpath + '//input'
+        input_element = self.get_base_element(input_xpath)
         if clear_input_before:
-            self.get_base_element(input_xpath).driver.send_keys(Keys.CONTROL + "a")
-            self.get_base_element(input_xpath).driver.send_keys(Keys.DELETE)
-        self.get_base_element(input_xpath).driver.send_keys(input_text)
+            input_element.driver.send_keys(Keys.CONTROL + "a")
+            input_element.driver.send_keys(Keys.DELETE)
+        input_element.driver.send_keys(input_text)
 
     def get_value(self) -> str:
         """
