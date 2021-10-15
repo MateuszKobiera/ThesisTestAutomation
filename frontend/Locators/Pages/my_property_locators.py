@@ -16,10 +16,4 @@ class MyPropertyLocators:
     cancel_button = "//span[text()='Cancel']//ancestor::button", "Button"
     structure_table = "//table", "Table"
     add_structure_button = "//span[text()='Add to structure']//ancestor::button", "Button"
-    structure_element_type_dropdown = '//*[@id="structureType"]', "Dropdown"
-    structure_name_input = '//*[@id="overview-tab_people"]', "Input"
-    structure_usage_dropdown = '//*[@id="usage"]', "Dropdown"
-    structure_people_input = '//*[@id="people"]', "Input"
-    structure_gross_surface_input = '//*[@id="surfacegross"]', "Input"
-    structure_net_surface_input = '//*[@id="surfacenet"]', "Input"
 

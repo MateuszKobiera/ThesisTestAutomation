@@ -1,7 +1,7 @@
 from selenium import webdriver
 
-from frontend.Locators.menu_locators import MenuLocators
-from frontend.Pages.base_page import BasePage
+from frontend.Locators.Pages.menu_locators import MenuLocators
+from frontend.objects.Pages.base_page import BasePage
 
 
 class MenuPage(BasePage):

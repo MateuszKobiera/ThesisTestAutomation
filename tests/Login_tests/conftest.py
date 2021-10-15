@@ -2,8 +2,8 @@ import pytest
 from selenium import webdriver
 
 from backend.login_api import LoginAPI
-from frontend.Pages.account_initalization_page import AccountInitializationPage
-from frontend.Pages.terms_and_conditions_page import TermsAndConditionsPage
+from frontend.objects.Pages.account_initalization_page import AccountInitializationPage
+from frontend.objects.Pages.terms_and_conditions_page import TermsAndConditionsPage
 
 
 @pytest.fixture

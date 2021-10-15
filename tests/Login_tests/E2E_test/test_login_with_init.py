@@ -1,4 +1,4 @@
-from frontend.Locators.login_locators import LoginPageLocators
+from frontend.Locators.Pages.login_locators import LoginPageLocators
 
 
 def test_initialization_with_login(login_page):

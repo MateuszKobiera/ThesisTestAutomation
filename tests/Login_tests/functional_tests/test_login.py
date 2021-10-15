@@ -1,7 +1,7 @@
 import pytest
 from pytest_bdd import given, scenario, when, then
 
-from frontend.Locators.menu_locators import MenuLocators
+from frontend.Locators.Pages.menu_locators import MenuLocators
 
 
 # @pytest.mark.NoInit

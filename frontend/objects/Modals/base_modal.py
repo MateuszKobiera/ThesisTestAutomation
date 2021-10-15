@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Pages.base_page import BasePage
+from frontend.objects.Pages.base_page import BasePage
 
 
 class BaseModal(BasePage):

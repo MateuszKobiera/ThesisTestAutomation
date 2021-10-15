@@ -1,7 +1,7 @@
 from selenium import webdriver
 
-from frontend.Locators.login_locators import LoginPageLocators
-from frontend.Pages.base_page import BasePage
+from frontend.Locators.Pages.login_locators import LoginPageLocators
+from frontend.objects.Pages.base_page import BasePage
 
 
 class LoginPage(BasePage):

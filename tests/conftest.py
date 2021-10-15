@@ -1,9 +1,9 @@
 import pytest
 from selenium import webdriver
 
-from frontend.Pages.base_page import BasePage
-from frontend.Pages.login_page import LoginPage
-from frontend.Pages.menu_page import MenuPage
+from frontend.objects.Pages.base_page import BasePage
+from frontend.objects.Pages.login_page import LoginPage
+from frontend.objects.Pages.menu_page import MenuPage
 
 
 @pytest.fixture(scope="session")

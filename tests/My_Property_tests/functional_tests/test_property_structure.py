@@ -1,6 +1,6 @@
 from pytest_bdd import scenario, given, then, when
 
-from frontend.Locators.my_property_locators import MyPropertyLocators
+from frontend.Locators.Pages.my_property_locators import MyPropertyLocators
 
 
 @scenario("property_structure.feature", "Wyświetlanie okna dialogowego dla budynku")
@@ -17,7 +17,7 @@ def step_impl(log_in, my_property_page):
 
 @given('Nie dodano budynku')
 def step_impl(my_property_page):
-    assert my_property_page.get_structure_table()['ELEMENT TYPE'] == \
+    assert my_property_page.get_structure_table(empty_table=True)[0]['ELEMENT TYPE'] == \
            'No element - Click on \'Add to structure\' to insert first structural element'
 
 

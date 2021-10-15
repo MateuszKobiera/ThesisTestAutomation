@@ -1,8 +1,8 @@
 from selenium import webdriver
 
-from frontend.Locators.my_property_locators import MyPropertyLocators
-from frontend.Modals.my_property_add_to_structure import AddToStructureModal
-from frontend.Pages.base_page import BasePage
+from frontend.Locators.Pages.my_property_locators import MyPropertyLocators
+from frontend.objects.Modals.my_property_add_to_structure import AddToStructureModal
+from frontend.objects.Pages.base_page import BasePage
 from frontend.components.table import Table
 
 
@@ -280,12 +280,15 @@ class MyPropertyPage(BasePage):
         """
         return self.get_component(MyPropertyLocators.structure_table)
 
-    def get_structure_table(self) -> dict:
+    def get_structure_table(self, empty_table: bool = False) -> dict:
         """
         Pobranie tabeli struktury jako słownika
         :return:
         """
-        return self._structure_table().get_table()
+        if empty_table:
+            return self._structure_table().get_table()
+        else:
+            return self._structure_table().get_table(unique_column_name='NAME')
 
 # TODO dodanie obsługi akcji w tabeli
     def delete_structure(self, structure: str):
@@ -298,3 +301,5 @@ class MyPropertyPage(BasePage):
         self.get_element(MyPropertyLocators.add_structure_button).click()
         return AddToStructureModal(self.driver)
 
+    def modal_is_displayed(self):
+        self.get_element(MyPropertyLocators)
