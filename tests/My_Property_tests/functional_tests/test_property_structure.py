@@ -21,11 +21,11 @@ def step_impl(my_property_page):
            'No element - Click on \'Add to structure\' to insert first structural element'
 
 
-@when('Kliknę w przycisk "Add structure"')
-def step_impl(my_property_page):
-    add_to_structure_modal = my_property_page.add_new_structure()
+@when('Kliknę w przycisk "Add structure"', target_fixture='add_structure_modal')
+def add_structure_modal(my_property_page):
+    return my_property_page.add_new_structure()
 
 
 @then('Pokazuje się okno dialogowe dla dodania budynku')
-def step_impl(my_property_page):
-    pass
+def step_impl(add_structure_modal):
+    assert add_structure_modal.get_title() == 'Add new structure element'

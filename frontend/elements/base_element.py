@@ -18,7 +18,7 @@ class BaseElement:
         self.driver = driver
         self.xpath = xpath
 
-    def click(self):
+    def click(self) -> None:
         """
         Click on a element
         :return:
@@ -29,7 +29,7 @@ class BaseElement:
             self.driver.refresh()
             self.driver.click()
 
-    def get_text(self):
+    def get_text(self) -> str:
         """
         Get available text for an element
         :return:
