@@ -1,6 +1,7 @@
 import pytest
 from pytest_bdd import given, scenario, when, then, scenarios
 
+from backend.mocked_data.user import user
 from frontend.Locators.Pages.menu_locators import MenuLocators
 
 CONVERTERS = {
@@ -10,7 +11,12 @@ CONVERTERS = {
     'blad_hasla': str,
     'blad_ogolny': str,
 }
-
+CONVERTERS2 = {
+    'haslo': str,
+    'potwierdzenie_hasla': str,
+    'blad_hasla': str,
+    'blad_potwierdzenia_hasla': str,
+}
 
 @pytest.mark.NoInit
 @scenario("login.feature", "Wyświetlanie błędów podczas logowania", example_converters=CONVERTERS)
@@ -46,6 +52,11 @@ def test_account_init_validation_no_data():
 def test_account_init():
     pass
 
+
+@pytest.mark.NoInit
+@scenario("login.feature", "Wyświetlanie błędów podczas inicjacji konta innego niż Admin", example_converters=CONVERTERS2)
+def test_account_user_init():
+    pass
 
 # scenarios('login.feature')
 
@@ -114,7 +125,7 @@ def step_impl(menu_page):
     menu_page.check_enabled_widgets((MenuLocators.my_property_widget, MenuLocators.edge_device_configuration_widget))
 
 
-@given('Użytkownik jest zainicjowany')
+@given('Użytkownik Admin jest zainicjowany')
 def step_impl(login_page, login_api):
     assert login_api.get_init_done()
 
@@ -161,3 +172,19 @@ def step_impl(login_page, blad_nazwy_uzytkownika, blad_hasla, blad_ogolny):
 @then("Przekierowano na stronę logowania")
 def step_impl(login_page):
     assert login_page.url == login_page.driver.current_url
+
+
+@given("Użytkownik User1 jest stworzony, nie zainicjowany")
+def step_impl(login_page, login_api):
+    login_api.post_create_user(user())
+    assert login_page.url == login_page.driver.current_url
+
+
+@when('Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"')
+def step_impl(haslo, potwierdzenie_hasla):
+    raise NotImplementedError(u'STEP: When Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"')
+
+
+@given('Wyświetlono "<blad_hasla>" i "<blad_potwierdzenia_hasla>" podczas inicjacji')
+def step_impl(blad_hasla, blad_potwierdzenia_hasla):
+    raise NotImplementedError(u'STEP: And Wyświetlono "<blad_hasla>" i "<blad_potwierdzenia_hasla>" podczas inicjacji')

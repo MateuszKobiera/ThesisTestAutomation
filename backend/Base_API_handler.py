@@ -4,9 +4,14 @@ import requests
 
 
 class BaseAPI:
+    headers = {
+        'accept': 'text/plain',
+        'Content-Type': 'application/json-patch+json'}
+
     def __init__(self):
         self.base_url = 'http://192.168.1.254/api/'
         self.authentication = 'authentication'
+        self.authorize()
 
     def send_request(self, request_type: str, url: str, **kwargs) -> dict:
         """
@@ -16,7 +21,11 @@ class BaseAPI:
         :return: Słownik z wartością zwróconą
         """
         call = getattr(requests, request_type)
-        return call(self.base_url + url, **kwargs).json()
+        response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs).json()
+        # if url != 'authentication' and :
+        #     if response['status'] not in [200, 201, 202] and type(response['status']) == int:
+        #         raise TypeError(response)
+        return response
 
     def authorize(self):
         data = {
@@ -25,4 +34,6 @@ class BaseAPI:
             "tool": "Configuration"
         }
         data = json.dumps(data)
-        self.send_request('post', self.authentication, data=data)
+        data_response = self.send_request('post', self.authentication, data=data)
+        BaseAPI.headers['Authorization'] = f'Bearer {data_response["access_token"]}'
+        return data_response

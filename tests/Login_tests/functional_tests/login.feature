@@ -26,7 +26,7 @@ Feature: Test login page
 
   Scenario: Otwieranie strony logowania z zainicjowanym użytkownikiem
     Given Jestem na stronie logowania
-    And Użytkownik jest zainicjowany
+    And Użytkownik Admin jest zainicjowany
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę główną
 
@@ -57,8 +57,10 @@ Feature: Test login page
 
   @AutomationOnly @ManualE2E
   Scenario Outline: Wyświetlanie błędów podczas inicjacji konta innego niż Admin
-    Given Jestem na stronie inicjacji
-    And Użytkownik Admin jest zainicjowany, użytkownik User1 jest stworzony, nie zainicjowany
+    Given Jestem na stronie logowania
+    # TODO zmienić na jestem na stronie inicjacji użytkownika
+    And Użytkownik Admin jest zainicjowany
+    And Użytkownik User1 jest stworzony, nie zainicjowany
     When Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"
     Then Przekierowano na stronę inicjacji
     And Wyświetlono "<blad_hasla>" i "<blad_potwierdzenia_hasla>" podczas inicjacji
