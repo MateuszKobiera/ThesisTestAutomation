@@ -22,7 +22,10 @@ class Input(BaseElement):
         :return:
         """
         validation_xpath = self.xpath + '/div[contains(@class,"validation")]'
-        return self.get_base_element(validation_xpath).get_text()
+        if self.check_is_element_visible((validation_xpath, "Base")):
+            return self.get_base_element(validation_xpath).get_text()
+        else:
+            return ''
 
     def set_value(self, input_text: str, clear_input_before: bool = True) -> None:
         """

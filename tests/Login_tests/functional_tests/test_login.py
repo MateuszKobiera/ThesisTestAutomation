@@ -1,13 +1,21 @@
 import pytest
-from pytest_bdd import given, scenario, when, then
+from pytest_bdd import given, scenario, when, then, scenarios
 
 from frontend.Locators.Pages.menu_locators import MenuLocators
 
+CONVERTERS = {
+    'login': str,
+    'haslo': str,
+    'blad_nazwy_uzytkownika': str,
+    'blad_hasla': str,
+    'blad_ogolny': str,
+}
 
-# @pytest.mark.NoInit
-# @scenario("login.feature", "Wyświetlanie błędów podczas inicjacji bez danych")
-# def test_login_no_data():
-#     pass
+
+@pytest.mark.NoInit
+@scenario("login.feature", "Wyświetlanie błędów podczas logowania", example_converters=CONVERTERS)
+def test_init_validation():
+    pass
 
 
 @pytest.mark.NoInit
@@ -28,9 +36,18 @@ def test_accept_terms_policy():
 
 
 @pytest.mark.NoInit
+@scenario("login.feature", "Wyświetlanie błędów podczas inicjacji bez danych")
+def test_account_init_validation_no_data():
+    pass
+
+
+@pytest.mark.NoInit
 @scenario("login.feature", "Inicjacja Admina po logowaniu")
 def test_account_init():
     pass
+
+
+# scenarios('login.feature')
 
 
 @given("Jestem na stronie logowania")
@@ -70,6 +87,7 @@ def step_impl(account_init_page):
 
 
 @given('Jestem na stronie inicjacji danych')
+@then("Przekierowano na stronę inicjacji danych")
 # Terms and conditions should be accepted already
 def step_impl(log_in, account_init_page):
     assert account_init_page.url == account_init_page.driver.current_url
@@ -101,15 +119,16 @@ def step_impl(login_page, login_api):
     assert login_api.get_init_done()
 
 
-# @when("Nie wpisuje danych")
-# def step_impl(login_page):
-#     login_page.login()
+@when("Nie wpisuje danych konta")
+def step_impl(account_init_page):
+    account_init_page.save()
 
 
-# @given("Wyświetlono błędy z informacją o wymaganych danych logowania")
-# def step_impl(login_page):
-#     assert login_page.get_username_validation() == 'Username is required'  # bug Username is not displayed
-#     assert login_page.get_password_validation() == 'Password is required'
+@given("Wyświetlono błędy z informacją o wymaganych danych logowania")
+def step_impl(login_page):
+    assert login_page.get_username_validation() == 'Username is required'  # bug Username is not displayed
+    assert login_page.get_password_validation() == 'Password is required'
+
 
 @given('"Admin" ma ustawione tylko hasło')
 def step_impl(login_api):
@@ -119,3 +138,26 @@ def step_impl(login_api):
 @given("Zasady i warunki zostały potwierdzone")
 def step_impl(login_api):
     assert login_api.get_initialization_status() == 'CoreInitializationDone'
+
+# @then("Przekierowano na stronę inicjacji danych")
+# def step_impl():
+#     raise NotImplementedError(u'STEP: Then Przekierowano na stronę inicjacji danych')
+
+
+@when('Wpisuje niepoprawne dane logowania "<login>" i "<haslo>"')
+def step_impl(login_page, login, haslo):
+    login_page.set_username(login)
+    login_page.set_password(haslo)
+    login_page.login()
+
+
+@then('Wyświetlono "<blad_nazwy_uzytkownika>" i "<blad_hasla>" i "<blad_ogolny>" podczas logowania')
+def step_impl(login_page, blad_nazwy_uzytkownika, blad_hasla, blad_ogolny):
+    assert login_page.get_username_validation() == blad_nazwy_uzytkownika
+    assert login_page.get_password_validation() == blad_hasla
+    assert login_page.get_general_validation() == blad_ogolny
+
+
+@then("Przekierowano na stronę logowania")
+def step_impl(login_page):
+    assert login_page.url == login_page.driver.current_url

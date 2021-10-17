@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located, \
     invisibility_of_element_located
@@ -63,6 +64,13 @@ class BasePage:
         :return:
         """
         WebDriverWait(self.driver, timeout, poll_frequency).until(invisibility_of_element_located((By.XPATH, locator[0])))
+
+    def check_is_element_visible(self, locator: tuple, timeout: int = 1, poll_frequency: float = 0.1) -> bool:
+        try:
+            WebDriverWait(self.driver, timeout, poll_frequency).until(visibility_of_element_located((By.XPATH, locator[0])))
+            return True
+        except TimeoutException:
+            return False
 
     def open_tab(self, tab_name:str) -> None:
         """

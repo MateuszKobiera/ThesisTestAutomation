@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
@@ -53,3 +53,10 @@ class BaseElement:
         :return: sterownik elementu
         """
         return BaseElement(self.driver.find_element_by_xpath(locator), locator)
+
+    def check_is_element_visible(self, locator: tuple, timeout: int = 1, poll_frequency: float = 0.1) -> bool:
+        try:
+            WebDriverWait(self.driver, timeout, poll_frequency).until(visibility_of_element_located((By.XPATH, locator[0])))
+            return True
+        except TimeoutException:
+            return False

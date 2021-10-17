@@ -30,11 +30,11 @@ Feature: Test login page
     When Wpisuje poprawne dane logowania
     Then Przekierowano na stronę główną
 
-   @Manual?
   Scenario: Wyświetlanie błędów podczas inicjacji bez danych
-    Given Jestem na stronie inicjacji konta
-    When Nie wpisuje danych
-    Then Przekierowano na stronę inicjacji konta
+    Given Jestem na stronie inicjacji danych
+    And Zasady i warunki zostały potwierdzone
+    When Nie wpisuje danych konta
+    Then Przekierowano na stronę inicjacji danych
     And Wyświetlono błędy z informacją o wymaganych danych logowania
 
  @AutomationOnly @ManualE2E
@@ -56,7 +56,7 @@ Feature: Test login page
       | AA    | Smartspaces1! |                        |                                                      |Invalid credentials|
 
   @AutomationOnly @ManualE2E
-  Scenario Outline: Wyświetlanie błędów podczas inicjacji
+  Scenario Outline: Wyświetlanie błędów podczas inicjacji konta innego niż Admin
     Given Jestem na stronie inicjacji
     And Użytkownik Admin jest zainicjowany, użytkownik User1 jest stworzony, nie zainicjowany
     When Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"

@@ -12,7 +12,7 @@ class LoginPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/auth'
-        self.wait_for_element(LoginPageLocators.login_button)
+        self.wait_for_element(LoginPageLocators.login_button, timeout=8)
 
     def set_username(self, username: str) -> None:
         """
@@ -58,4 +58,14 @@ class LoginPage(BasePage):
             self.get_element(LoginPageLocators.tool_dropdown).choose_option(mode)
         else:
             ValueError('Zła nazwa modułu. Do wybrania: "Configuration" albo "Operation"')
+
+    def get_general_validation(self) -> str:
+        """
+        Pobranie ogólnej walidacji
+        :return:
+        """
+        if self.check_is_element_visible(LoginPageLocators.general_validation_base):
+            return self.get_element(LoginPageLocators.general_validation_base).get_text()
+        else:
+            return ''
 
