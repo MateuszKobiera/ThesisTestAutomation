@@ -4,6 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 
+from frontend.test_logger import get_logger
+
 
 class BaseElement:
     """
@@ -17,17 +19,21 @@ class BaseElement:
         """
         self.driver = driver
         self.xpath = xpath
+        self.logger = get_logger(self.__class__.__name__)
 
     def click(self) -> None:
         """
         Click on a element
         :return:
         """
+        self.logger.info(f'Trying to click element with xpath {self.xpath}')
         try:
             self.driver.click()
         except StaleElementReferenceException:
+            self.logger.warn('StaleElementReferenceException occurred. Trying to refresh driver.')
             self.driver.refresh()
             self.driver.click()
+        self.logger.info(f'Element with xpath {self.xpath} was clicked')
 
     def get_text(self) -> str:
         """
