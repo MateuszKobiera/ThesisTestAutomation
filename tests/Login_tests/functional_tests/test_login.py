@@ -20,7 +20,7 @@ CONVERTERS2 = {
 
 @pytest.mark.NoInit
 @scenario("login.feature", "Wyświetlanie błędów podczas logowania", example_converters=CONVERTERS)
-def test_init_validation():
+def test_login_validation():
     pass
 
 

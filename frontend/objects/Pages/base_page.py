@@ -15,7 +15,7 @@ from frontend.elements.input import Input
 class BasePage:
     def __init__(self, driver: webdriver):
         self.driver = driver
-        self.base_url = 'http://192.168.1.254/'
+        self.base_url = 'http://192.168.1.10/'
 
     def get_element(self, locator: tuple) -> webdriver:
         """
