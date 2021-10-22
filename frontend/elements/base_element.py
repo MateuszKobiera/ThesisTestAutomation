@@ -1,13 +1,10 @@
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.expected_conditions import visibility_of_element_located
-from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common.exceptions import StaleElementReferenceException
 
-from frontend.test_logger import get_logger
+from frontend.element_waiting import ElementWaiting
 
 
-class BaseElement:
+class BaseElement(ElementWaiting):
     """
     Podstawowy element, którego metody są uniwersalne
     """
@@ -17,9 +14,9 @@ class BaseElement:
         :param driver:
         :param xpath:
         """
+        super().__init__(driver)
         self.driver = driver
         self.xpath = xpath
-        self.logger = get_logger(self.__class__.__name__)
 
     def click(self) -> None:
         """
@@ -40,17 +37,8 @@ class BaseElement:
         Get available text for an element
         :return:
         """
+        self.logger.info(f'Trying to get text of element with xpath {self.xpath}')
         return self.driver.text
-
-    def wait_for_element(self, locator: str, timeout: int = 5, poll_frequency: float = 0.1) -> None:
-        """
-        Oczekiwanie na widoczność elementu
-        :param locator: xpath i typ elementu, do oczekiwania
-        :param timeout: maksymalny czas czekania na element
-        :param poll_frequency: czas próbkowania co jaki jest sprawdzana widoczność elementu
-        :return:
-        """
-        WebDriverWait(self.driver, timeout, poll_frequency).until(visibility_of_element_located((By.XPATH, locator)))
 
     def get_base_element(self, locator: str) -> webdriver:
         """
@@ -58,11 +46,6 @@ class BaseElement:
         :param locator: xpath i typ elementu do znalezienia
         :return: sterownik elementu
         """
+        self.logger.info(f'Trying to get base element with xpath {self.xpath}')
         return BaseElement(self.driver.find_element_by_xpath(locator), locator)
 
-    def check_is_element_visible(self, locator: tuple, timeout: int = 1, poll_frequency: float = 0.1) -> bool:
-        try:
-            WebDriverWait(self.driver, timeout, poll_frequency).until(visibility_of_element_located((By.XPATH, locator[0])))
-            return True
-        except TimeoutException:
-            return False

@@ -1,9 +1,7 @@
 import logging
 import sys
-from logging.handlers import TimedRotatingFileHandler
 
 FORMATTER = logging.Formatter("%(asctime)5s — %(name)15s — %(levelname)5s — %(message)s")
-LOG_FILE = "my_app.log"
 
 
 def get_console_handler():
@@ -12,15 +10,7 @@ def get_console_handler():
     return console_handler
 
 
-def get_file_handler():
-    file_handler = TimedRotatingFileHandler(LOG_FILE, when='midnight')
-    file_handler.setFormatter(FORMATTER)
-    return file_handler
-
-
 def get_logger(logger_name):
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(get_console_handler())
-    logger.addHandler(get_file_handler())
     return logger
