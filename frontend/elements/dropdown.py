@@ -15,7 +15,7 @@ class Dropdown(Input):
         """
         option_xpath = f'//div[contains(@class,"menu")]//span[text()="{option}"]/..'
         self.click()
-        self.wait_for_element(option_xpath)
+        self.wait_for_element((option_xpath, 'Base'))
         self.driver.parent.execute_script('return arguments[0].scrollIntoView(false);', self.driver)
         self.get_base_element(option_xpath).click()
 

@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Pages.base_page import BasePage
+from frontend.objects.Pages.base_page import BasePage
 
 
 class BaseModal(BasePage):
@@ -16,25 +16,35 @@ class BaseModal(BasePage):
         self.cancel_xpath = self.xpath + \
             '//div[@data-testid = "DialogContainer"]//button[contains(@class, "discreetblack")]'
         self.x_close_button = "//div[@class='ReactModalPortal']//i[contains(@class, 'close_24')]"
+        self.title = "//span[contains(@class, 'title')]"
         self.wait_for_element(('//div[@class = "ABB_CommonUX_Dialog__content"]', 'Base'))
 
-    def save(self):
+    def save(self) -> None:
         """
         Kliknięcie przycisku 'save' lub 'accept'
         :return:
         """
-        self.get_element((self.save_xpath, 'Button')).click()
+        save_button = (self.save_xpath, 'Button')
+        self.get_element(save_button).click()
+        self.wait_for_element_to_disappear(save_button)
 
-    def cancel(self):
+    def cancel(self) -> None:
         """
         Kliknięcie przycisku 'Cancel'
         :return:
         """
         self.get_element((self.cancel_xpath, 'Button')).click()
 
-    def close(self):
+    def close(self) -> None:
         """
         Kliknięcie przycisku 'X' jako zamknięcie okna dialogowego i anulowanie operacji
         :return:
         """
         self.get_element((self.x_close_button, 'Button')).click()
+
+    def get_title(self) -> str:
+        """
+        Pobranie tytułu okna dialogowego
+        :return: tekst tytułu
+        """
+        return self.get_element((self.title, 'Base')).get_text()

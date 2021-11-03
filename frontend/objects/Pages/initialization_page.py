@@ -1,7 +1,7 @@
 from selenium import webdriver
 
-from frontend.Locators.initialization_locators import InitializationLocators
-from frontend.Pages.base_page import BasePage
+from frontend.Locators.Pages.initialization_locators import InitializationLocators
+from frontend.objects.Pages.base_page import BasePage
 
 
 class InitializationPage(BasePage):

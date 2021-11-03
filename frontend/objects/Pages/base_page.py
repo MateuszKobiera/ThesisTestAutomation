@@ -1,19 +1,18 @@
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.expected_conditions import visibility_of_element_located
-from selenium.webdriver.support.wait import WebDriverWait
 
 from frontend.components.table import Table
+from frontend.element_waiting import ElementWaiting
 from frontend.elements.base_element import BaseElement
 from frontend.elements.button import Button
 from frontend.elements.dropdown import Dropdown
 from frontend.elements.input import Input
 
 
-class BasePage:
+class BasePage(ElementWaiting):
     def __init__(self, driver: webdriver):
+        super().__init__(driver)
         self.driver = driver
-        self.base_url = 'http://192.168.1.254/'
+        self.base_url = 'http://192.168.1.10/'
 
     def get_element(self, locator: tuple) -> webdriver:
         """
@@ -21,6 +20,8 @@ class BasePage:
         :param locator: xpath i typ elementu do znalezienia
         :return: sterownik elementu
         """
+
+        self.logger.info(f'Trying to find element {locator}')
         if locator[1] == 'Button':
             element = Button(self.driver.find_element_by_xpath(locator[0]), locator[0])
         elif locator[1] == 'Input':
@@ -29,6 +30,7 @@ class BasePage:
             element = Dropdown(self.driver.find_element_by_xpath(locator[0]), locator[0])
         else:
             element = BaseElement(self.driver.find_element_by_xpath(locator[0]), locator[0])
+        self.logger.info(f'Found element {locator}')
         return element
 
     def get_component(self, locator: tuple) -> webdriver:
@@ -37,21 +39,14 @@ class BasePage:
         :param locator: xpath i typ elementu do znalezienia
         :return: sterownik komponentu
         """
+        self.logger.info(f'Trying to find component {locator}')
         if locator[1] == 'Table':
             component = Table(self.driver.find_element_by_xpath(locator[0]), locator[0])
+            self.logger.info(f'Found component {locator}')
         else:
-            raise ValueError('Nie ma takiego elementu')
+            self.logger.error(f'Component {locator} not found')
+            raise ValueError('Nie ma takiego komponentu')
         return component
-
-    def wait_for_element(self, locator: tuple, timeout: int = 5, poll_frequency: float = 0.1) -> None:
-        """
-        Oczekiwanie na widoczność elementu
-        :param locator: xpath i typ elementu, do oczekiwania
-        :param timeout: maksymalny czas czekania na element
-        :param poll_frequency: czas próbkowania co jaki jest sprawdzana widoczność elementu
-        :return:
-        """
-        WebDriverWait(self.driver, timeout, poll_frequency).until(visibility_of_element_located((By.XPATH, locator[0])))
 
     def open_tab(self, tab_name:str) -> None:
         """

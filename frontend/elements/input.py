@@ -22,7 +22,10 @@ class Input(BaseElement):
         :return:
         """
         validation_xpath = self.xpath + '/div[contains(@class,"validation")]'
-        return self.get_base_element(validation_xpath).get_text()
+        if self.check_is_element_visible((validation_xpath, "Base")):
+            return self.get_base_element(validation_xpath).get_text()
+        else:
+            return ''
 
     def set_value(self, input_text: str, clear_input_before: bool = True) -> None:
         """
@@ -32,10 +35,11 @@ class Input(BaseElement):
         :return:
         """
         input_xpath = self.xpath + '//input'
+        input_element = self.get_base_element(input_xpath)
         if clear_input_before:
-            self.get_base_element(input_xpath).driver.send_keys(Keys.CONTROL + "a")
-            self.get_base_element(input_xpath).driver.send_keys(Keys.DELETE)
-        self.get_base_element(input_xpath).driver.send_keys(input_text)
+            input_element.driver.send_keys(Keys.CONTROL + "a")
+            input_element.driver.send_keys(Keys.DELETE)
+        input_element.driver.send_keys(input_text)
 
     def get_value(self) -> str:
         """

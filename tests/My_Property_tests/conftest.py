@@ -1,6 +1,6 @@
 import pytest
 
-from frontend.Pages.my_property_page import MyPropertyPage
+from frontend.objects.Pages.my_property_page import MyPropertyPage
 
 
 @pytest.fixture

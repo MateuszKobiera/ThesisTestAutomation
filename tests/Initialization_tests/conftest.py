@@ -1,7 +1,7 @@
 import pytest
 from selenium import webdriver
 
-from frontend.Pages.initialization_page import InitializationPage
+from frontend.objects.Pages.initialization_page import InitializationPage
 
 
 @pytest.fixture

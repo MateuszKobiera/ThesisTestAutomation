@@ -15,5 +15,5 @@ class MyPropertyLocators:
     save_button = "//span[text()='Save']//ancestor::button", "Button"
     cancel_button = "//span[text()='Cancel']//ancestor::button", "Button"
     structure_table = "//table", "Table"
-
+    add_structure_button = "//span[text()='Add to structure']//ancestor::button", "Button"
 
