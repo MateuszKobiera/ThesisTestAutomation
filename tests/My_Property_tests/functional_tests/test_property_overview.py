@@ -46,3 +46,33 @@ def step_impl(my_property_page):
 @then('Zakładka Structure została odblokowana')
 def step_impl(my_property_page):
     my_property_page.open_tab('Structure')
+
+
+@when("Nie wpisano danych nieruchomości")
+def step_impl(my_property_page):
+    my_property_page.save()
+
+
+@then("Dane nie zostały zapisane")
+def step_impl():
+    raise NotImplementedError(u'STEP: Then Dane nie zostały zapisane')
+
+
+@given("Zakładka Structure nie została odblokowana")
+def step_impl():
+    raise NotImplementedError(u'STEP: And Zakładka Structure nie została odblokowana')
+
+
+@given("Wyświetlono błędy z informacją o braku danych nieruchomości")
+def step_impl():
+    raise NotImplementedError(u'STEP: And Wyświetlono błędy z informacją o braku danych nieruchomości')
+
+
+@when("Wpisuje niepoprawne dane nieruchomości")
+def step_impl():
+    raise NotImplementedError(u'STEP: When Wpisuje niepoprawne dane nieruchomości')
+
+
+@given("Wyświetlono błędy z informacją o niepoprawnych danych nieruchomości")
+def step_impl():
+    raise NotImplementedError(u'STEP: And Wyświetlono błędy z informacją o niepoprawnych danych nieruchomości')

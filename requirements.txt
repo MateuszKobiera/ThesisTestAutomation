@@ -6,3 +6,4 @@ jwt
 pytest-pycharm
 requests
 pytest-html
+pytest-check
