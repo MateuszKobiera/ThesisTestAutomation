@@ -89,7 +89,7 @@ def step_impl(terms_page):
     """
     Sprawdzenie poprawności przekierowania przez url
     :param terms_page: struktura obsługująca przeglądarkę na stronie zasad i warunków
-    :return:
+    :return: nic nie zwraca
     """
     assert terms_page.url == terms_page.driver.current_url
 
@@ -132,6 +132,11 @@ def step_impl(account_init_page):
 
 @then("Przekierowano na stronę główną")
 def step_impl(menu_page):
+    """
+    Sprawdzenie poprawności przekierowania przez url
+    :param menu_page: struktura obsługująca przeglądarkę na stronie głównej
+    :return: nic nie zwraca
+    """
     assert menu_page.url == menu_page.driver.current_url
 
 
