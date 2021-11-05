@@ -62,12 +62,22 @@ def test_account_user_init():
 
 
 @given("Jestem na stronie logowania")
-def open_browser(login_page):
+def open_browser(login_page) -> None:
+    """
+    Otwieranie strony logowania i sprawdzenie jej url
+    :param login_page: struktura obsługująca przeglądarkę i otwierająca stronę logowania
+    :return: nic nie zwraca
+    """
     assert login_page.url == login_page.driver.current_url
 
 
 @when('Wpisuje poprawne dane logowania')
 def logowanie(login_page):
+    """
+    Wpisanie danych i zatwierdzenie logowania
+    :param login_page: struktura obsługująca przeglądarkę i otwierająca stronę logowania
+    :return: nic nie zwraca
+    """
     login_page.choose_mode('Configuration')
     login_page.set_username('Admin')
     login_page.set_password('Smartspaces1!')
@@ -76,6 +86,11 @@ def logowanie(login_page):
 
 @then('Przekierowano na stronę zasad i warunków')
 def step_impl(terms_page):
+    """
+    Sprawdzenie poprawności przekierowania przez url
+    :param terms_page: struktura obsługująca przeglądarkę na stronie zasad i warunków
+    :return:
+    """
     assert terms_page.url == terms_page.driver.current_url
 
 
