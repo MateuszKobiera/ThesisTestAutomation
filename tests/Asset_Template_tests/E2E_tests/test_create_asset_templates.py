@@ -53,8 +53,57 @@ def test_create_asset_template(asset_templates_page):
     asset_templates_page.set_master_slave()
     asset_templates_page.save()
     asset_templates_page.open_tab('Points')
-    asset_templates_page.click_add_datapoint()
+    data: dict = {}
+    for point_format in ['Float', 'Integer', 'Boolean', 'Enum']:
+        data[point_format] = {'format': point_format, 'name': f'{point_format}',
+                              'type': 'Command And Feedback', 'tag': f'{create_random_string(5)}'}
+        datapoint_modal = asset_templates_page.click_add_datapoint()
+        # noinspection DuplicatedCode
+        datapoint_modal.click_custom_datapoint()
+        datapoint_modal.set_name(data[point_format]['name'])
+        datapoint_modal.set_type(data[point_format]['type'])
+        datapoint_modal.set_format(data[point_format]['format'])
+        if point_format == 'Integer' or point_format == 'Float':
+            data[point_format]['unit'] = 'Degrees - deg'
+            data[point_format]['display_unit'] = 'Radians - rad'
+            data[point_format]['min_value'] = 0
+            data[point_format]['max_value'] = 100000
+            datapoint_modal.set_unit(data[point_format]['unit'])
+            datapoint_modal.set_min_value(data[point_format]['min_value'])
+            datapoint_modal.set_max_value(data[point_format]['max_value'])
+            datapoint_modal.set_display_unit(data[point_format]['display_unit'])
+        datapoint_modal.tags.set_new_tag(data[point_format]['tag'])
+        datapoint_modal.save()
 
+    datapoints_table = asset_templates_page.points_properties_table.get_table(unique_column_name='POINT')
+    for point_format in ['Float', 'Integer', 'Boolean', 'Enum']:
+        assert datapoints_table[point_format]['POINT'] == data[point_format]['format']
+        assert datapoints_table[point_format]['DIRECTION'] == data[point_format]['type']
 
+    asset_templates_page.open_tab('properties')
+    properties_data: dict = {}
+    for point_format in ['String', 'Float', 'Integer', 'Boolean', 'Enum']:
+        properties_data[point_format] = {'format': point_format, 'name': f'{point_format}',
+                                         'type': 'Command And Feedback', 'tag': f'{create_random_string(5)}'}
+        datapoint_modal = asset_templates_page.click_add_property()
+        # noinspection DuplicatedCode
+        datapoint_modal.click_custom_datapoint()
+        datapoint_modal.set_name(properties_data[point_format]['name'])
+        datapoint_modal.set_type(properties_data[point_format]['type'])
+        datapoint_modal.set_format(properties_data[point_format]['format'])
+        if point_format == 'Integer' or point_format == 'Float':
+            properties_data[point_format]['unit'] = 'Degrees - deg'
+            properties_data[point_format]['display_unit'] = 'Radians - rad'
+            properties_data[point_format]['min_value'] = 0
+            properties_data[point_format]['max_value'] = 100000
+            datapoint_modal.set_unit(properties_data[point_format]['unit'])
+            datapoint_modal.set_min_value(properties_data[point_format]['min_value'])
+            datapoint_modal.set_max_value(properties_data[point_format]['max_value'])
+            datapoint_modal.set_display_unit(properties_data[point_format]['display_unit'])
+        datapoint_modal.tags.set_new_tag(properties_data[point_format]['tag'])
+        datapoint_modal.save()
 
-
+    properties_table = asset_templates_page.points_properties_table.get_table(unique_column_name='PROPERTY')
+    for point_format in ['String', 'Float', 'Integer', 'Boolean', 'Enum']:
+        assert properties_table[point_format]['PROPERTY'] == properties_data[point_format]['format']
+        assert properties_table[point_format]['VALUE'] == properties_data[point_format]['type']

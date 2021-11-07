@@ -35,6 +35,7 @@ class Input(BaseElement):
         :return:
         """
         input_xpath = self.xpath + '//input' if 'input' not in self.xpath else self.xpath
+        self.wait_for_element(input_xpath)
         input_element = self.get_base_element(input_xpath)
         if clear_input_before:
             input_element.driver.send_keys(Keys.CONTROL + "a")

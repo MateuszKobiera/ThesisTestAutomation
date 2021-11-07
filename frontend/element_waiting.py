@@ -36,8 +36,9 @@ class ElementWaiting:
         :param poll_frequency: czas próbkowania co jaki jest sprawdzana widoczność elementu
         """
         self.logger.info(f'Waiting for element to disappear {locator} with poll frequency {poll_frequency} and timeout {timeout}')
+        locator_xpath = locator if type(locator) == str else locator[0]
         WebDriverWait(self.driver, timeout, poll_frequency).until(
-            invisibility_of_element_located((By.XPATH, locator[0])),
+            invisibility_of_element_located((By.XPATH, locator_xpath)),
             message=f'Element is still visible in timeout {timeout}s.')
         self.logger.info(f'Element {locator} disappeared.')
 
@@ -48,8 +49,9 @@ class ElementWaiting:
         :param timeout: maksymalny czas czekania na element
         :return: True jeśli jest widoczny False jeśli nie znaleziono elementu w ciągu timeoutu
         """
+        locator_xpath = locator if type(locator) == str else locator[0]
         try:
-            self.wait_for_element(locator, timeout)
+            self.wait_for_element(locator_xpath, timeout)
             self.logger.info(f'Element {locator} was found.')
             return True
         except TimeoutException:

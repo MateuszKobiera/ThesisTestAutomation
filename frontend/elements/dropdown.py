@@ -13,9 +13,24 @@ class Dropdown(Input):
         :param option: nazwa opcji z listy
         :return:
         """
-        option_xpath = f'//div[contains(@class,"menu")]//span[text()="{option}"]/..'
+        option_xpath = f'//span[text()="{option}"]/..'
         self.click()
         self.wait_for_element((option_xpath, 'Base'))
+        self.driver.parent.execute_script('return arguments[0].scrollIntoView(false);', self.driver)
+        self.get_base_element(option_xpath).click()
+
+    def choose_option_with_input(self, option: str) -> None:
+        """
+        Wybieranie opcji z listy rozwijanej
+        :param option: nazwa opcji z listy
+        :return:
+        """
+        option_xpath = f'//span[text()="{option}"]/..'
+        collapsable = self.xpath + '//div[contains(@class,"undefined")]'
+        self.click()
+        self.set_value(option)
+        if self.get_base_element(collapsable):
+            self.get_base_element(collapsable).click()
         self.driver.parent.execute_script('return arguments[0].scrollIntoView(false);', self.driver)
         self.get_base_element(option_xpath).click()
 
