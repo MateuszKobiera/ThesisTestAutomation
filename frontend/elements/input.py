@@ -34,7 +34,7 @@ class Input(BaseElement):
         :param clear_input_before: wyczyszczenie wartości pola tekstowego przed wpisaniem wartości, standardowo włączone
         :return:
         """
-        input_xpath = self.xpath + '//input'
+        input_xpath = self.xpath + '//input' if 'input' not in self.xpath else self.xpath
         input_element = self.get_base_element(input_xpath)
         if clear_input_before:
             input_element.driver.send_keys(Keys.CONTROL + "a")

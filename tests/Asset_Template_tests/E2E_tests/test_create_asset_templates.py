@@ -1,3 +1,8 @@
+from random import randint
+
+from utils.string_editor import create_random_string
+
+
 def test_create_asset_template(asset_templates_page):
     """
     WARUNKI WSTĘPNE:
@@ -31,6 +36,15 @@ def test_create_asset_template(asset_templates_page):
         11. Properties zostały dodane i są wyświetlane w zakładce 'Properties' z możliwością edycji i ich usunięcia
             z nazwą i wartością początkową
     """
-    add_template_modal = asset_templates_page.click_add_button('Central')
+    asset_templates_page.open_tab('Sensors')
+    add_template_modal = asset_templates_page.click_add_button('Sensors')
+    template_name = f'{create_random_string(5)} {create_random_string(5)}'
+    add_template_modal.set_template_name(template_name)
+    add_template_modal.set_template_type('UV Sensor')
     add_template_modal.tags.set_new_tag('ABC')
-    add_template_modal.tags.get_tags()
+    all_tags = add_template_modal.tags.get_tags()
+    add_template_modal.icons.set_icon(randint(1, 826))
+    add_template_modal.icons.set_background(color_type='rgb', color=(randint(0, 255), randint(0, 255), randint(0, 255)))
+    background_color = add_template_modal.icons.get_background_color()
+    add_template_modal.save()
+

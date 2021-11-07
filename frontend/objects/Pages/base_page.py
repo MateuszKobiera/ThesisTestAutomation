@@ -2,6 +2,7 @@ from typing import Union
 
 from selenium import webdriver
 
+from frontend.components.icons import Icons
 from frontend.components.table import Table
 from frontend.components.tags import Tags
 from frontend.element_creation import ElementCreation
@@ -39,6 +40,9 @@ class BasePage(ElementCreation):
             self.logger.info(f'Found component {locator}')
         elif locator[1] == 'Tags':
             component = Tags(self.driver.find_element_by_xpath(locator[0]), locator[0])
+            self.logger.info(f'Found component {locator}')
+        elif locator[1] == 'Icons':
+            component = Icons(self.driver.find_element_by_xpath(locator[0]), locator[0])
             self.logger.info(f'Found component {locator}')
         else:
             self.logger.error(f'Component {locator} not found')

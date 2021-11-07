@@ -16,7 +16,7 @@ class AssetTemplatesPage(BasePage):
         :param table_name:
         :return:
         """
-        if self.check_is_element_visible(AssetTemplatesLocators.add_template[0].format('Central')):
+        if self.check_is_element_visible(AssetTemplatesLocators.add_template[0].format(table_name)):
             self.get_element_with_format(AssetTemplatesLocators.add_template, table_name).click()
         else:
             raise NameError(f"Change tab to the correct one or check correctness of the table_name {table_name}")
