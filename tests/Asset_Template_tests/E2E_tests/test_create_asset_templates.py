@@ -1,6 +1,3 @@
-from frontend.objects.Pages.asset_templates_page import AssetTemplatesPage
-
-
 def test_create_asset_template(asset_templates_page):
     """
     WARUNKI WSTĘPNE:
@@ -34,4 +31,6 @@ def test_create_asset_template(asset_templates_page):
         11. Properties zostały dodane i są wyświetlane w zakładce 'Properties' z możliwością edycji i ich usunięcia
             z nazwą i wartością początkową
     """
-    asset_templates_page.click_add_button('Central')
+    add_template_modal = asset_templates_page.click_add_button('Central')
+    add_template_modal.tags.set_new_tag('ABC')
+    add_template_modal.tags.get_tags()

@@ -33,3 +33,11 @@ class ElementCreation(ElementWaiting):
             element = BaseElement(self.driver.find_element_by_xpath(locator[0]), locator[0])
         self.logger.info(f'Found element {locator}')
         return element
+
+    def get_multiple_elements(self, locator_xpath: str) -> list:
+        """
+        Get multiple elements
+        :param locator_xpath:
+        :return: list of webdrivers
+        """
+        return self.driver.find_elements_by_xpath(locator_xpath)
