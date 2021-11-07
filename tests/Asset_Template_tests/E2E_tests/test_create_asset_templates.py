@@ -36,11 +36,17 @@ def test_create_asset_template(asset_templates_page):
         11. Properties zostały dodane i są wyświetlane w zakładce 'Properties' z możliwością edycji i ich usunięcia
             z nazwą i wartością początkową
     """
+    # step 1
     asset_templates_page.open_tab('Sensors')
+
+    # step 2
     add_template_modal = asset_templates_page.click_add_button('Sensors')
+
+    # step 3
     template_name = f'{create_random_string(5)} {create_random_string(5)}'
+    template_type = 'UV Sensor'
     add_template_modal.set_template_name(template_name)
-    add_template_modal.set_template_type('UV Sensor')
+    add_template_modal.set_template_type(template_type)
     add_template_modal.tags.set_new_tag('ABC')
     all_tags = add_template_modal.tags.get_tags()
     add_template_modal.icons.set_icon(randint(1, 826))
@@ -48,10 +54,23 @@ def test_create_asset_template(asset_templates_page):
     add_template_modal.icons.set_background(color_type='rgb', color=color_set)
     background_color = add_template_modal.icons.get_background_color()
     assert color_set == background_color
+
+    # step 4
     add_template_modal.save()
-    asset_templates_page.table('Sensors').edit_row(unique_column_name='TEMPLATE NAME', row_name=template_name)
+    template_table = asset_templates_page.template_table(table_name='Sensors').get_table(unique_column_name='TEMPLATE NAME')
+    assert template_table[template_name]['TEMPLATE NAME'] == template_name
+    assert template_table[template_name]['TYPE'] == template_type
+    assert template_table[template_name]['INSTANCES'] == '0'
+
+    # step 5
+    asset_templates_page.template_table('Sensors').edit_row(unique_column_name='TEMPLATE NAME', row_name=template_name)
+
+    # step 6
     asset_templates_page.set_master_slave()
     asset_templates_page.save()
+    assert asset_templates_page.template_tags.get_tags() == all_tags
+
+    # step 7 & 8 & 9 & 10
     asset_templates_page.open_tab('Points')
     data: dict = {}
     for point_format in ['Float', 'Integer', 'Boolean', 'Enum']:
@@ -80,6 +99,7 @@ def test_create_asset_template(asset_templates_page):
         assert datapoints_table[point_format]['POINT'] == data[point_format]['format']
         assert datapoints_table[point_format]['DIRECTION'] == data[point_format]['type']
 
+    # step 7 & 8 & 9 & 11
     asset_templates_page.open_tab('properties')
     properties_data: dict = {}
     for point_format in ['String', 'Float', 'Integer', 'Boolean', 'Enum']:

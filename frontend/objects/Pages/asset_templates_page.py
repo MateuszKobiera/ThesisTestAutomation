@@ -23,7 +23,7 @@ class AssetTemplatesPage(BasePage):
             raise NameError(f"Change tab to the correct one or check correctness of the table_name {table_name}")
         return AddAssetTemplateModal(self.driver)
 
-    def table(self, table_name: str):
+    def template_table(self, table_name: str):
         return self.get_component_with_format(AssetTemplatesLocators.template_table, table_name)
 
     def set_master_slave(self):
@@ -41,3 +41,7 @@ class AssetTemplatesPage(BasePage):
     @property
     def points_properties_table(self):
         return self.get_component(AssetTemplatesLocators.point_properties_table)
+
+    @property
+    def template_tags(self):
+        return self.get_component(AssetTemplatesLocators.tags_component)
