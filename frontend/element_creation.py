@@ -5,6 +5,7 @@ from frontend.elements.base_element import BaseElement
 from frontend.elements.button import Button
 from frontend.elements.dropdown import Dropdown
 from frontend.elements.input import Input
+from frontend.elements.switcher import Switcher
 
 
 class ElementCreation(ElementWaiting):
@@ -29,6 +30,8 @@ class ElementCreation(ElementWaiting):
             element = Input(self.driver.find_element_by_xpath(locator[0]), locator[0])
         elif locator[1] == 'Dropdown':
             element = Dropdown(self.driver.find_element_by_xpath(locator[0]), locator[0])
+        elif locator[1] == 'Switcher':
+            element = Switcher(self.driver.find_element_by_xpath(locator[0]), locator[0])
         else:
             element = BaseElement(self.driver.find_element_by_xpath(locator[0]), locator[0])
         self.logger.info(f'Found element {locator}')

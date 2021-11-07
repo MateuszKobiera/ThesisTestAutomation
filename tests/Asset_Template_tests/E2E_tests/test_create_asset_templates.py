@@ -44,7 +44,17 @@ def test_create_asset_template(asset_templates_page):
     add_template_modal.tags.set_new_tag('ABC')
     all_tags = add_template_modal.tags.get_tags()
     add_template_modal.icons.set_icon(randint(1, 826))
-    add_template_modal.icons.set_background(color_type='rgb', color=(randint(0, 255), randint(0, 255), randint(0, 255)))
+    color_set = (randint(0, 255), randint(0, 255), randint(0, 255))
+    add_template_modal.icons.set_background(color_type='rgb', color=color_set)
     background_color = add_template_modal.icons.get_background_color()
+    assert color_set == background_color
     add_template_modal.save()
+    asset_templates_page.table('Sensors').edit_row(unique_column_name='TEMPLATE NAME', row_name=template_name)
+    asset_templates_page.set_master_slave()
+    asset_templates_page.save()
+    asset_templates_page.open_tab('Points')
+    asset_templates_page.click_add_datapoint()
+
+
+
 

@@ -10,6 +10,7 @@ from frontend.elements.base_element import BaseElement
 from frontend.elements.button import Button
 from frontend.elements.dropdown import Dropdown
 from frontend.elements.input import Input
+from frontend.elements.switcher import Switcher
 
 
 class BasePage(ElementCreation):
@@ -18,7 +19,7 @@ class BasePage(ElementCreation):
         self.driver = driver
         self.base_url = 'http://192.168.1.254/'
 
-    def get_element_with_format(self, locator: tuple, *args) -> Union[Dropdown, Input, Button, BaseElement]:
+    def get_element_with_format(self, locator: tuple, *args) -> Union[Dropdown, Input, Button, BaseElement, Switcher]:
         """
         Get element when format of element is needed
         :param locator: locator of element
@@ -27,6 +28,16 @@ class BasePage(ElementCreation):
         """
         self.logger.info(f'Trying to format the element {locator} with data {args}')
         return self.get_element((locator[0].format(*args), locator[1]))
+
+    def get_component_with_format(self, locator: tuple, *args) -> Union[Table, Tags, Icons]:
+        """
+        Get component when format of element is needed
+        :param locator: locator of element
+        :param args: data for formatting the element
+        :return: element driver
+        """
+        self.logger.info(f'Trying to format the element {locator} with data {args}')
+        return self.get_component((locator[0].format(*args), locator[1]))
 
     def get_component(self, locator: tuple) -> webdriver:
         """
@@ -56,4 +67,21 @@ class BasePage(ElementCreation):
         :return:
         """
         tab_element = f"//a[text()='{tab_name}']//ancestor::li", "Base"
+        self.get_element(tab_element).click()
+
+    def save(self) -> None:
+        """
+        Zapisanie zmian na stronie
+        :return:
+        """
+        save_button = "//button[contains(@class, 'save-button')]", "Button"
+        self.get_element(save_button).click()
+        self.wait_for_loading_indicator()
+
+    def cancel(self) -> None:
+        """
+        Anulowanie zmian na stronie
+        :return:
+        """
+        tab_element = "//button[contains(@class, 'ABB_CommonUX_Button__discreetblack ')]", "Button"
         self.get_element(tab_element).click()

@@ -66,7 +66,10 @@ class Icons(BaseComponent):
 
     def get_background_color(self):
         color = self.get_element((self.xpath + "/div/div[1]", "Base")).driver.value_of_css_property("background-color")
-        return tuple(color.split('(')[1].split(',')[:-1])
+        color_list: list = []
+        for element in color.split('(')[1].split(',')[:-1]:
+            color_list.append(int(element))
+        return tuple(color_list)
 
     def set_icon(self, number_of_icon: int):
         """
