@@ -3,14 +3,14 @@ from typing import Union
 from selenium import webdriver
 
 from frontend.components.table import Table
-from frontend.element_waiting import ElementWaiting
+from frontend.element_creation import ElementCreation
 from frontend.elements.base_element import BaseElement
 from frontend.elements.button import Button
 from frontend.elements.dropdown import Dropdown
 from frontend.elements.input import Input
 
 
-class BasePage(ElementWaiting):
+class BasePage(ElementCreation):
     def __init__(self, driver: webdriver):
         super().__init__(driver)
         self.driver = driver
@@ -25,25 +25,6 @@ class BasePage(ElementWaiting):
         """
         self.logger.info(f'Trying to format the element {locator} with data {args}')
         return self.get_element((locator[0].format(*args), locator[1]))
-
-    def get_element(self, locator: tuple) -> webdriver:
-        """
-        Wybranie elementu
-        :param locator: xpath i typ elementu do znalezienia
-        :return: sterownik elementu
-        """
-
-        self.logger.info(f'Trying to find element {locator}')
-        if locator[1] == 'Button':
-            element = Button(self.driver.find_element_by_xpath(locator[0]), locator[0])
-        elif locator[1] == 'Input':
-            element = Input(self.driver.find_element_by_xpath(locator[0]), locator[0])
-        elif locator[1] == 'Dropdown':
-            element = Dropdown(self.driver.find_element_by_xpath(locator[0]), locator[0])
-        else:
-            element = BaseElement(self.driver.find_element_by_xpath(locator[0]), locator[0])
-        self.logger.info(f'Found element {locator}')
-        return element
 
     def get_component(self, locator: tuple) -> webdriver:
         """

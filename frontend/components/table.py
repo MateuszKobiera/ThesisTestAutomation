@@ -2,10 +2,10 @@ from copy import copy
 
 from selenium import webdriver
 
-from frontend.elements.base_element import BaseElement
+from frontend.components.base_component import BaseComponent
 
 
-class Table:
+class Table(BaseComponent):
     """
     Komponent tabeli
     """
@@ -16,11 +16,7 @@ class Table:
         :param driver:
         :param xpath:
         """
-        self.driver = driver
-        self.xpath = xpath
-
-    def get_element(self, locator_xpath: str) -> webdriver:
-        return BaseElement(self.driver.find_element_by_xpath(locator_xpath), locator_xpath)
+        super().__init__(driver, xpath)
 
     def get_head_elements(self) -> list:
         """
