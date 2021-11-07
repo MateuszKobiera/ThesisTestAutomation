@@ -32,6 +32,7 @@ def test_login_user_no_initialized():
 
 @scenario("login.feature", "Otwieranie strony logowania z zainicjowanym użytkownikiem")
 def test_login_with_init():
+    """Struktura wywołania testu"""
     pass
 
 
@@ -131,7 +132,7 @@ def step_impl(account_init_page):
 
 
 @then("Przekierowano na stronę główną")
-def step_impl(menu_page):
+def assert_main_page_url(menu_page):
     """
     Sprawdzenie poprawności przekierowania przez url
     :param menu_page: struktura obsługująca przeglądarkę na stronie głównej

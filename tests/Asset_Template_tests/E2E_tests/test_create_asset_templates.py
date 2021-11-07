@@ -34,3 +34,4 @@ def test_create_asset_template(asset_templates_page):
         11. Properties zostały dodane i są wyświetlane w zakładce 'Properties' z możliwością edycji i ich usunięcia
             z nazwą i wartością początkową
     """
+    asset_templates_page.click_add_button('Central')

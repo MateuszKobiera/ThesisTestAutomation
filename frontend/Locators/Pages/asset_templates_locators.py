@@ -1,2 +1,3 @@
 class AssetTemplatesLocators:
-    add_template = '', 'Button'
+    active_tab = "//*[contains(@class,'active')]", "Button"
+    add_template = "//*[text()='{}']/ancestor::span//button", 'Button'

@@ -1,3 +1,5 @@
+from typing import Union
+
 from selenium import webdriver
 
 from frontend.components.table import Table
@@ -12,7 +14,17 @@ class BasePage(ElementWaiting):
     def __init__(self, driver: webdriver):
         super().__init__(driver)
         self.driver = driver
-        self.base_url = 'http://192.168.1.10/'
+        self.base_url = 'http://192.168.1.254/'
+
+    def get_element_with_format(self, locator: tuple, *args) -> Union[Dropdown, Input, Button, BaseElement]:
+        """
+        Get element when format of element is needed
+        :param locator: locator of element
+        :param args: data for formatting the element
+        :return: element driver
+        """
+        self.logger.info(f'Trying to format the element {locator} with data {args}')
+        return self.get_element((locator[0].format(*args), locator[1]))
 
     def get_element(self, locator: tuple) -> webdriver:
         """
@@ -48,7 +60,7 @@ class BasePage(ElementWaiting):
             raise ValueError('Nie ma takiego komponentu')
         return component
 
-    def open_tab(self, tab_name:str) -> None:
+    def open_tab(self, tab_name: str) -> None:
         """
         Zmiana zakładki
         :param tab_name: Nazwa zakładki, którą chcemy otworzyć
