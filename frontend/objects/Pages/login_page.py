@@ -12,7 +12,7 @@ class LoginPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/auth'
-        self.wait_for_element(LoginPageLocators.login_button, timeout=8)
+        self.get_element(LoginPageLocators.login_button).wait_for_element(timeout=8)
 
     def set_username(self, username: str) -> None:
         """
@@ -64,7 +64,7 @@ class LoginPage(BasePage):
         Pobranie ogólnej walidacji
         :return:
         """
-        if self.check_is_element_visible(LoginPageLocators.general_validation_base):
+        if self.get_element(LoginPageLocators.general_validation_base).is_element_visible():
             return self.get_element(LoginPageLocators.general_validation_base).get_text()
         else:
             return ''

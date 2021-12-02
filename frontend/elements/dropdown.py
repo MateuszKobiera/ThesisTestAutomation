@@ -15,9 +15,9 @@ class Dropdown(Input):
         """
         option_xpath = f'//span[text()="{option}"]/..'
         self.click()
-        self.wait_for_element((option_xpath, 'Base'))
+        option_element = self.get_base_element(option_xpath)
         self.driver.parent.execute_script('return arguments[0].scrollIntoView(false);', self.driver)
-        self.get_base_element(option_xpath).click()
+        option_element.click()
 
     def choose_option_with_input(self, option: str) -> None:
         """

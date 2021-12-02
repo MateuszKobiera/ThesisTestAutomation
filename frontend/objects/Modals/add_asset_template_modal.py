@@ -9,7 +9,7 @@ from frontend.objects.Modals.base_modal import BaseModal
 class AddAssetTemplateModal(BaseModal):
     def __init__(self, driver: webdriver):
         super().__init__(driver)
-        self.wait_for_element(AddAssetTemplateLocators.template_name_input)
+        self.get_element(AddAssetTemplateLocators.template_name_input).wait_for_element()
 
     @property
     def tags(self) -> Tags:

@@ -12,7 +12,7 @@ class AccountInitializationPage(BaseModal):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/account/activation'
-        self.wait_for_element(AccountInitializationLocators.company_input, timeout=20)
+        self.get_element(AccountInitializationLocators.company_input).wait_for_element(timeout=20)
 
     def save(self):
         """

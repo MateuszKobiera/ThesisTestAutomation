@@ -1,6 +1,7 @@
 from typing import Union
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 
 from frontend.components.icons import Icons
 from frontend.components.table import Table
@@ -18,6 +19,19 @@ class BasePage(ElementCreation):
         super().__init__(driver)
         self.driver = driver
         self.base_url = 'http://192.168.1.254/'
+
+    def wait_for_loading_indicator(self, time_to_wait: int = 5, timeout: int = 15,
+                                   polling_frequency: float = 0.5) -> None:
+        """
+        Wait for loading indicator to be present on page
+        :return:
+        """
+        loading_indicator = "//div[contains(@class,'LoadingIndicator')]", 'Base'
+        try:
+            self.get_element(loading_indicator).wait_for_element(time_to_wait)
+            self.get_element(loading_indicator).wait_for_element_to_disappear(timeout, polling_frequency)
+        except TimeoutException:
+            pass
 
     def get_element_with_format(self, locator: tuple, *args) -> Union[Dropdown, Input, Button, BaseElement, Switcher]:
         """

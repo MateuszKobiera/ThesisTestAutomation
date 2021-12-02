@@ -12,7 +12,7 @@ class TermsAndConditionsPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/system/initialization'
-        self.wait_for_element(TermsAndConditionsLocators.terms_condition_textbox)
+        self.get_element(TermsAndConditionsLocators.terms_condition_textbox).wait_for_element()
 
     def save(self):
         """
@@ -57,5 +57,6 @@ class TermsAndConditionsPage(BasePage):
         Potwierdzenie inicjacji użytkownika
         :return:
         """
-        self.wait_for_element(TermsAndConditionsLocators.initialize_button)
-        self.get_element(TermsAndConditionsLocators.initialize_button).click()
+        element = self.get_element(TermsAndConditionsLocators.initialize_button)
+        element.wait_for_element(TermsAndConditionsLocators.initialize_button)
+        element.click()

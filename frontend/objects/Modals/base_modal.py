@@ -17,16 +17,16 @@ class BaseModal(BasePage):
             f'({self.xpath}//div[@data-testid = "DialogContainer"]//button[contains(@class, "discreetblack")])[last()]'
         self.x_close_button = "//div[@class='ReactModalPortal']//i[contains(@class, 'close_24')]"
         self.title = "//span[contains(@class, 'title')]"
-        self.wait_for_element(('//div[@class = "ABB_CommonUX_Dialog__content"]', 'Base'))
+        self.get_element(('//div[@class = "ABB_CommonUX_Dialog__content"]', 'Base')).wait_for_element()
 
     def save(self) -> None:
         """
         Kliknięcie przycisku 'save' lub 'accept'
         :return:
         """
-        save_button = (self.save_xpath, 'Button')
-        self.get_element(save_button).click()
-        self.wait_for_element_to_disappear(save_button, timeout=10)
+        save_button = self.get_element((self.save_xpath, 'Button'))
+        save_button.click()
+        save_button.wait_for_element_to_disappear(save_button, timeout=10)
 
     def cancel(self) -> None:
         """

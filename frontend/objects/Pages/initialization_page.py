@@ -12,7 +12,16 @@ class InitializationPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/admin/activation'
-        self.wait_for_element(InitializationLocators.change_password_button)
+        self.get_element(InitializationLocators.change_password_button).wait_for_element()
+        self.title = 'Building Ecosystem'
+
+    @property
+    def password_input(self):
+        return self.get_element(InitializationLocators.password_input)
+
+    @property
+    def password_confirmation_input(self):
+        return self.get_element(InitializationLocators.password_confirmation_input)
 
     def set_passwords(self, password: str, password_confirmation: str) -> None:
         """
@@ -42,3 +51,10 @@ class InitializationPage(BasePage):
         :return: tekst walidacji
         """
         return self.get_element(InitializationLocators.password_confirmation_input).get_validation()
+
+    def get_title(self) -> str:
+        """
+        Pobranie tytułu strony
+        :return: tekst tytuły
+        """
+        return self.get_element(InitializationLocators.title_base).get_text()

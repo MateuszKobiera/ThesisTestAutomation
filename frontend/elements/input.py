@@ -22,8 +22,9 @@ class Input(BaseElement):
         :return:
         """
         validation_xpath = self.xpath + '/div[contains(@class,"validation")]'
-        if self.check_is_element_visible((validation_xpath, "Base")):
-            return self.get_base_element(validation_xpath).get_text()
+        validation_element = self.get_base_element(validation_xpath)
+        if validation_element.is_element_visible():
+            return validation_element.get_text()
         else:
             return ''
 
@@ -35,7 +36,6 @@ class Input(BaseElement):
         :return:
         """
         input_xpath = self.xpath + '//input' if 'input' not in self.xpath else self.xpath
-        self.wait_for_element(input_xpath)
         input_element = self.get_base_element(input_xpath)
         if clear_input_before:
             input_element.driver.send_keys(Keys.CONTROL + "a")

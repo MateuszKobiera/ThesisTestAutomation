@@ -28,7 +28,7 @@ class Icons(BaseComponent):
         color_types = 0
         if color_type.lower() == 'hex':
             if type(color) == str:
-                while self.check_is_element_visible((input_xpath.format('hex'), "Input")) is False and color_types < 3:
+                while self.is_element_visible((input_xpath.format('hex'), "Input")) is False and color_types < 3:
                     self.get_element(change_input_type_xpath).click()
                     color_types += 1
                     if color_types >= 3:
@@ -38,7 +38,7 @@ class Icons(BaseComponent):
                 raise TypeError(f'Wrong type of color argument, there is {type(color)}, but should be str for hex.')
         elif color_type.lower() == 'rgb':
             if type(color) == tuple:
-                while self.check_is_element_visible((input_xpath.format('r'), "Input")) is False and color_types < 3:
+                while self.is_element_visible((input_xpath.format('r'), "Input")) is False and color_types < 3:
                     self.get_element(change_input_type_xpath).click()
                     color_types += 1
                     if color_types >= 3:
@@ -50,7 +50,7 @@ class Icons(BaseComponent):
                 raise TypeError(f'Wrong type of color argument, there is {type(color)}, but should be tuple for rgb.')
         elif color_type.lower() == 'hsl':
             if type(color) == tuple:
-                while self.check_is_element_visible((input_xpath.format('h'), "Input")) is False and color_types < 3:
+                while self.is_element_visible((input_xpath.format('h'), "Input")) is False and color_types < 3:
                     self.get_element(change_input_type_xpath).click()
                     color_types += 1
                     if color_types >= 3:

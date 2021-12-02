@@ -9,7 +9,7 @@ from frontend.objects.Pages.base_page import BasePage
 class AssetTemplatesPage(BasePage):
     def __init__(self, driver: webdriver):
         super().__init__(driver)
-        self.wait_for_element(AssetTemplatesLocators.add_template[0].format('Central'), timeout=8)
+        self.get_element(AssetTemplatesLocators.add_template[0].format('Central')).wait_for_element(timeout=8)
 
     def click_add_button(self, table_name: str) -> AddAssetTemplateModal:
         """
@@ -17,7 +17,7 @@ class AssetTemplatesPage(BasePage):
         :param table_name:
         :return:
         """
-        if self.check_is_element_visible(AssetTemplatesLocators.add_template[0].format(table_name)):
+        if self.get_element(AssetTemplatesLocators.add_template[0].format(table_name)).is_element_visible():
             self.get_element_with_format(AssetTemplatesLocators.add_template, table_name).click()
         else:
             raise NameError(f"Change tab to the correct one or check correctness of the table_name {table_name}")

@@ -12,14 +12,14 @@ class MenuPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/app/apps'
-        self.wait_for_element(MenuLocators.my_property_widget, timeout=15)
+        self.get_element(MenuLocators.my_property_widget).wait_for_element(timeout=15)
 
     def check_enabled_widgets(self, widgets: tuple):
         for widget in MenuLocators.all_main_widgets:
             if widget in widgets:
-                assert self.check_is_element_visible(widget) is True
+                assert self.get_element(widget).is_element_visible() is True
             else:
-                assert self.check_is_element_visible(widget) is False
+                assert self.get_element(widget).is_element_visible(widget) is False
 
     def go_to_my_property(self) -> None:
         """Opens My property widget by clicking on it"""
