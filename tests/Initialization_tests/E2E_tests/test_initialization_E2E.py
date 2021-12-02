@@ -42,7 +42,23 @@ def test_inicjacja_zakonczona_sukcesem(initialization_page):
     assert initialization_page.password_confirmation_input.get_label() == 'Confirm password of the “Admin” account'
 
     # step 4
+    initialization_page.change_password()
+    assert initialization_page.password_input.get_validation() == 'Password is required'
+
+    # step 5
     for password in PASSWORD_VALIDATION:
         initialization_page.set_passwords(password, password)
         assert initialization_page.password_input.get_validation() == PASSWORD_VALIDATION[password]
+        initialization_page.change_password()
+
+    # step 6
+    initialization_page.set_passwords('Smartspaces1!', 'Stupidspaces1!')
+    assert initialization_page.password_confirmation_input.get_validation() == 'Passwords do not match'
+    initialization_page.change_password()
+
+    # step 7
+    initialization_page.set_passwords('Smartspaces1!', 'Smartspaces1!')
+    login_page = initialization_page.change_password()
+    assert login_page.driver.current_url == login_page.url
+
 

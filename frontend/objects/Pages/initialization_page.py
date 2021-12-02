@@ -2,6 +2,7 @@ from selenium import webdriver
 
 from frontend.locators.Pages.initialization_locators import InitializationLocators
 from frontend.objects.Pages.base_page import BasePage
+from frontend.objects.Pages.login_page import LoginPage
 
 
 class InitializationPage(BasePage):
@@ -31,12 +32,13 @@ class InitializationPage(BasePage):
         self.get_element(InitializationLocators.password_input).set_value(password)
         self.get_element(InitializationLocators.password_confirmation_input).set_value(password_confirmation)
 
-    def change_password(self) -> None:
+    def change_password(self) -> LoginPage:
         """
         Kliknięcie przycisku zmiany hasła
         :return:
         """
         self.get_element(InitializationLocators.change_password_button).click()
+        return LoginPage(self.driver)
 
     def get_first_password_validation(self) -> str:
         """
