@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Modals.add_datapoint_property_modal_locators import AddDatapointPropertyLocators
+from frontend.locators.Modals.add_datapoint_property_modal_locators import AddDatapointPropertyLocators
 from frontend.objects.Modals.base_modal import BaseModal
 
 

@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.asset_templates_locators import AssetTemplatesLocators
+from frontend.locators.Pages.asset_templates_locators import AssetTemplatesLocators
 from frontend.objects.Modals.add_asset_template_modal import AddAssetTemplateModal
 from frontend.objects.Modals.add_datapoint_property_modal import AddDatapointPropertyModal
 from frontend.objects.Pages.base_page import BasePage

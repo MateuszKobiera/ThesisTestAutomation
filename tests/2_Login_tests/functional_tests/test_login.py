@@ -2,7 +2,7 @@ import pytest
 from pytest_bdd import given, scenario, when, then, scenarios
 
 from backend.mocked_data.user import user
-from frontend.Locators.Pages.menu_locators import MenuLocators
+from frontend.locators.Pages.menu_locators import MenuLocators
 
 CONVERTERS = {
     'login': str,
@@ -147,7 +147,13 @@ def step_impl(menu_page):
 
 
 @given('Użytkownik Admin jest zainicjowany')
-def step_impl(login_page, login_api):
+def admin_initialized(login_page, login_api):
+    """
+    Sprawdzenie czy użytkownik 'Admin' jest zainicjowany
+    :param login_page: struktura obsługująca przeglądarkę na stronie logowania
+    :param login_api: struktura obsługująca API dla strony logowania
+    :return: nic nie zwraca
+    """
     assert login_api.get_init_done()
 
 

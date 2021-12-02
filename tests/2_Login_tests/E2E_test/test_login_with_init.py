@@ -1,6 +1,6 @@
 import pytest
 
-from frontend.Locators.Pages.login_locators import LoginPageLocators
+from frontend.locators.Pages.login_locators import LoginPageLocators
 
 
 @pytest.mark.skip

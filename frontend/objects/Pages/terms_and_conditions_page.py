@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.terms_condition_locators import TermsAndConditionsLocators
+from frontend.locators.Pages.terms_condition_locators import TermsAndConditionsLocators
 from frontend.objects.Pages.base_page import BasePage
 
 

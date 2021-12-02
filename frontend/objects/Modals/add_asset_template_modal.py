@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Modals.add_asset_template_modal_locators import AddAssetTemplateLocators
+from frontend.locators.Modals.add_asset_template_modal_locators import AddAssetTemplateLocators
 from frontend.components.icons import Icons
 from frontend.components.tags import Tags
 from frontend.objects.Modals.base_modal import BaseModal

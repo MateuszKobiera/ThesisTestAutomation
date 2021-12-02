@@ -1,6 +1,6 @@
 from pytest_bdd import scenario, given, then, when
 
-from frontend.Locators.Pages.my_property_locators import MyPropertyLocators
+from frontend.locators.Pages.my_property_locators import MyPropertyLocators
 
 
 @scenario("property_structure.feature", "Wyświetlanie okna dialogowego dla budynku")

@@ -3,8 +3,8 @@ from random import randint
 from utils.string_editor import create_random_string
 
 
-def test_create_asset_template(asset_templates_page):
-    """
+def test_stworz_asset_template_z_datapointami_i_properties(asset_templates_page):
+    """ Testuje stworzenie asset template wraz z stworzeniem różnego typu datapointów i properties
     WARUNKI WSTĘPNE:
         - Użytkownik Admin jest zalogowany
         - Budynek jest dodany

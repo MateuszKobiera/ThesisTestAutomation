@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.account_initialization_locators import AccountInitializationLocators
+from frontend.locators.Pages.account_initialization_locators import AccountInitializationLocators
 from frontend.objects.Modals.base_modal import BaseModal
 
 

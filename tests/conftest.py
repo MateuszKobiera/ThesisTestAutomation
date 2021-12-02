@@ -48,7 +48,7 @@ def pytest_html_report_title(report):
 
 def pytest_configure(config):
     main_dir: Path = Path(__file__).parent.parent
-    reports_dir: Path = main_dir.joinpath('Reports')
+    reports_dir: Path = main_dir.joinpath('reports')
     if not reports_dir.exists():
         reports_dir.mkdir()
     config.option.session_report_dir = reports_dir.joinpath(f'{datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}')

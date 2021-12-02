@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.my_property_locators import MyPropertyLocators
+from frontend.locators.Pages.my_property_locators import MyPropertyLocators
 from frontend.objects.Modals.my_property_add_to_structure import AddToStructureModal
 from frontend.objects.Pages.base_page import BasePage
 from frontend.components.table import Table
