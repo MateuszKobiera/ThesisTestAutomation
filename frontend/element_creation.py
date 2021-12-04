@@ -42,7 +42,7 @@ class ElementCreation:
         """
 
         self.logger.info(f'Trying to find element {locator}')
-        self.__wait_for_element(locator[0])
+        self.__wait_for_element(locator[0], timeout=15)
 
         if locator[1] == 'Button':
             element = Button(self.driver.find_element_by_xpath(locator[0]), locator[0])

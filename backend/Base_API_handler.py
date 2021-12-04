@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 
 import requests
 
@@ -21,11 +22,14 @@ class BaseAPI:
         :return: Słownik z wartością zwróconą
         """
         call = getattr(requests, request_type)
-        response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs).json()
+        try:
+            response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs)
+            return response.json()
+        except JSONDecodeError:
+            raise ValueError(f'Response code error: {response.status_code}, with reason: {response.reason}.')
         # if url != 'authentication' and :
         #     if response['status'] not in [200, 201, 202] and type(response['status']) == int:
         #         raise TypeError(response)
-        return response
 
     def authorize(self):
         data = {

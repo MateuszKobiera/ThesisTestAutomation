@@ -58,5 +58,5 @@ class TermsAndConditionsPage(BasePage):
         :return:
         """
         element = self.get_element(TermsAndConditionsLocators.initialize_button)
-        element.wait_for_element(TermsAndConditionsLocators.initialize_button)
+        element.wait_for_element()
         element.click()
