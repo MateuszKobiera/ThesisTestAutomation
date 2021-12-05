@@ -37,7 +37,7 @@ Feature: Test login page
     Then Przekierowano na stronę inicjacji danych
     And Wyświetlono błędy z informacją o wymaganych danych logowania
 
- @AutomationOnly @ManualE2E
+ @AutomationOnly @ManualE2E @Kolejne_logowanie_administratora
   Scenario Outline: Wyświetlanie błędów podczas logowania
     Given Jestem na stronie logowania
     When Wpisuje niepoprawne dane logowania "<login>" i "<haslo>"
@@ -56,7 +56,7 @@ Feature: Test login page
       | Admin | Abcdefghij1ą  |                        | Password must only contain alphanumerical characters |                   |
       | AA    | Smartspaces1! |                        |                                                      |Invalid credentials|
 
-  @AutomationOnly @ManualE2E
+  @AutomationOnly @ManualE2E @Pierwsze_logowanie_dla_użytkowników_innych_niż_'Admin'
   Scenario Outline: Wyświetlanie błędów podczas inicjacji konta innego niż Admin
     Given Jestem na stronie inicjacji danych
     And Użytkownik Admin jest zainicjowany
