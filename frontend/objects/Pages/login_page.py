@@ -42,7 +42,7 @@ class LoginPage(BasePage):
         """
         return self.get_element(LoginPageLocators.password_input).get_validation()
 
-    def login(self) -> None:
+    def click_login(self) -> None:
         """
         Kliknięcie przycisku zaloguj
         :return:

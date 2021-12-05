@@ -4,7 +4,7 @@ from tests.Initialization_tests.conftest import PASSWORD_VALIDATION
 
 
 @pytest.mark.order(1)
-def test_inicjacja_zakonczona_sukcesem(initialization_page):
+def test_inicjacja_zakonczona_sukcesem(factory_reset, initialization_page):
     """
     Testuje walidacje i dane strony inicjacji
     WARUNKI WSTĘPNE:

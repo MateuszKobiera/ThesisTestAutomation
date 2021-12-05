@@ -93,4 +93,4 @@ class LoginAPI(BaseAPI):
         Executes factory reset
         :return:
         """
-        return self.send_request('post', self.factory_reset)
+        self.send_request('post', self.factory_reset)

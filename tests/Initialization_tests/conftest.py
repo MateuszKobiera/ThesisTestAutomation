@@ -1,6 +1,7 @@
 import pytest
 from selenium import webdriver
 
+from backend.login_api import LoginAPI
 from frontend.objects.Pages.initialization_page import InitializationPage
 
 PASSWORD_VALIDATION = {
@@ -15,3 +16,24 @@ PASSWORD_VALIDATION = {
 @pytest.fixture
 def initialization_page(browser: webdriver):
     return InitializationPage(browser)
+
+
+@pytest.fixture
+def initialization_page_no_wait(browser: webdriver):
+    return InitializationPage(browser, wait=False)
+
+
+@pytest.fixture
+def login_api():
+    try:
+        return LoginAPI()
+    except KeyError:
+        print('Device is not initialized yet.')
+
+
+@pytest.fixture
+def factory_reset(login_api, initialization_page_no_wait):
+    if login_api:
+        login_api.post_factory_rest()
+        initialization_page_no_wait.wait_for_loading_indicator(time_to_wait=60, timeout=360)
+

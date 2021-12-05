@@ -26,7 +26,10 @@ class BaseAPI:
             response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs)
             return response.json()
         except JSONDecodeError:
-            raise ValueError(f'Response code error: {response.status_code}, with reason: {response.reason}.')
+            if response.reason == 'No Content':
+                return response
+            else:
+                raise ValueError(f'Response code error: {response.status_code}, with reason: {response.reason}.')
         # if url != 'authentication' and :
         #     if response['status'] not in [200, 201, 202] and type(response['status']) == int:
         #         raise TypeError(response)

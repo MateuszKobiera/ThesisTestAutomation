@@ -1,8 +1,11 @@
 from random import randint
 
+import pytest
+
 from utils.string_editor import create_random_string
 
 
+@pytest.mark.order(4)
 def test_stworz_asset_template_z_datapointami_i_properties(asset_templates_page):
     """ Testuje stworzenie asset template wraz z stworzeniem różnego typu datapointów i properties
     WARUNKI WSTĘPNE:

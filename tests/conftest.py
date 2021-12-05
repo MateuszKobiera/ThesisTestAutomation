@@ -34,7 +34,7 @@ def log_in(login_page):
     login_page.choose_mode('Configuration')
     login_page.set_username('Admin')
     login_page.set_password('Smartspaces1!')
-    login_page.login()
+    login_page.click_login()
 
 
 @pytest.fixture

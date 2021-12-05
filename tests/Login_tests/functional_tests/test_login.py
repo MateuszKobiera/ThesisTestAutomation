@@ -1,7 +1,7 @@
 import pytest
 from pytest_bdd import given, scenario, when, then, scenarios
 
-from backend.mocked_data.user import user, admin_account_init
+from backend.mocked_data.user import another_user, admin_account_init
 from frontend.locators.Pages.menu_locators import MenuLocators
 
 CONVERTERS = {
@@ -83,7 +83,7 @@ def logowanie(login_page):
     login_page.choose_mode('Configuration')
     login_page.set_username('Admin')
     login_page.set_password('Smartspaces1!')
-    login_page.login()
+    login_page.click_login()
 
 
 @then('Przekierowano na stronę zasad i warunków')
@@ -188,7 +188,7 @@ def step_impl(login_api):
 def step_impl(login_page, login, haslo):
     login_page.set_username(login)
     login_page.set_password(haslo)
-    login_page.login()
+    login_page.click_login()
 
 
 @then('Wyświetlono "<blad_nazwy_uzytkownika>" i "<blad_hasla>" i "<blad_ogolny>" podczas logowania')
@@ -205,7 +205,7 @@ def step_impl(login_page):
 
 @given("Użytkownik User1 jest stworzony, nie zainicjowany")
 def step_impl(login_page, login_api):
-    login_api.post_create_user(user())
+    login_api.post_create_user(another_user())
     assert login_page.url == login_page.driver.current_url
 
 

@@ -6,13 +6,14 @@ from frontend.objects.Pages.base_page import BasePage
 
 class TermsAndConditionsPage(BasePage):
 
-    def __init__(self, driver: webdriver) -> None:
+    def __init__(self, driver: webdriver, wait: bool = True) -> None:
         """
         :param driver:
         """
         super().__init__(driver)
         self.url = self.base_url + '#/system/initialization'
-        self.get_element(TermsAndConditionsLocators.terms_condition_textbox).wait_for_element()
+        if wait:
+            self.get_element(TermsAndConditionsLocators.terms_condition_textbox).wait_for_element()
 
     def save(self):
         """

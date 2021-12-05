@@ -7,13 +7,14 @@ from frontend.objects.Pages.login_page import LoginPage
 
 class InitializationPage(BasePage):
 
-    def __init__(self, driver: webdriver) -> None:
+    def __init__(self, driver: webdriver, wait: bool = True) -> None:
         """
         :param driver:
         """
         super().__init__(driver)
         self.url = self.base_url + '#/admin/activation'
-        self.get_element(InitializationLocators.change_password_button).wait_for_element()
+        if wait:
+            self.get_element(InitializationLocators.change_password_button).wait_for_element()
         self.title = 'Building Ecosystem'
 
     @property
