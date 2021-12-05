@@ -1,8 +1,11 @@
 import pytest
 
+from frontend.objects.Pages.account_initalization_page import AccountInitializationPage
+from frontend.objects.Pages.terms_and_conditions_page import TermsAndConditionsPage
+
 
 @pytest.mark.order(2)
-def test_pierwsze_logowanie_administratora(login_page, terms_page):
+def test_pierwsze_logowanie_administratora(login_page, browser):
     """
     Pierwsze logowanie administratora.
     Druga część inicjacji, gdzie potwierdza się zgody użytkownika i wpisuje dane użytkownika 'Admin'.
@@ -55,24 +58,53 @@ def test_pierwsze_logowanie_administratora(login_page, terms_page):
     login_page.set_password('Smartspaces1!')
     login_page.choose_mode('Configuration')
     login_page.click_login()
+    terms_page = TermsAndConditionsPage(browser)
     terms_page.wait_for_loading_indicator()
     assert terms_page.driver.current_url == terms_page.url
 
     # Step 3
+    assert terms_page.terms_condition_textbox.is_element_visible()
+    assert terms_page.privacy_policy_textbox.is_element_visible()
+    assert terms_page.terms_condition_checkbox.is_active() is False
+    assert terms_page.privacy_policy_checkbox.is_active() is False
+    assert terms_page.save_button.is_active() is False
+    assert terms_page.cancel_button.is_active()
 
     # Step 4
+    terms_page.cancel_button.click()
 
     # Step 5
+    login_page.set_username('Admin')
+    login_page.set_password('Smartspaces1!')
+    login_page.choose_mode('Configuration')
+    login_page.click_login()
+    terms_page.wait_for_loading_indicator()
+    assert terms_page.driver.current_url == terms_page.url
 
     # Step 6
+    terms_page.click_download_policy_privacy()  # bug - element is not clickable
+    terms_page.driver.switch_to.window(terms_page.driver.window_handles[1])
+    assert terms_page.driver.current_url == 'https://library.e.abb.com/public/5bf1010ad6d14991bf347fe5669678fe/GTC%20for%20ABB%20Ability%20Marketplace%20(US).pdf'
+    terms_page.driver.switch_to.window(terms_page.driver.window_handles[0])
 
     # Step 7
+    terms_page.scroll_terms_and_policy()
+    assert terms_page.terms_condition_checkbox.is_active()
+    assert terms_page.privacy_policy_checkbox.is_active()
 
     # Step 8
+    terms_page.accept_terms_and_policy()
+    assert terms_page.save_button.is_active()
 
     # Step 9
+    terms_page.save()
+    terms_page.launch_initialization()
 
     # Step 10
+    account_init_page = AccountInitializationPage(browser)
+    assert account_init_page.driver.current_url == account_init_page.url
+    account_init_page.save()
+    assert account_init_page.driver.current_url == account_init_page.url
 
     # Step 11
 
