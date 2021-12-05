@@ -8,3 +8,5 @@ class AccountInitializationLocators:
     phone_input = "//span[@id='first_time_login_tel']", 'Input'
     save_button = "//button[@id='first_time_login_submit']", "Button"
     cancel_button = "//button[@id='first_time_login_cancel']", "Button"
+    password_input = "", "Input"  # Bug - NOT implemented
+    password_confirmation_input = "", "Input"  # Bug - NOT implemented

@@ -14,6 +14,14 @@ class AccountInitializationPage(BaseModal):
         self.url = self.base_url + '#/account/activation'
         self.get_element(AccountInitializationLocators.company_input).wait_for_element(timeout=20)
 
+    @property
+    def password_input(self):
+        return self.get_element(AccountInitializationLocators.password_input)
+
+    @property
+    def password_confirmation_input(self):
+        return self.get_element(AccountInitializationLocators.password_confirmation_input)
+
     def save(self):
         """
         Zapisanie ustawień

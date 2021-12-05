@@ -43,6 +43,7 @@ Feature: Test login page
     When Wpisuje niepoprawne dane logowania "<login>" i "<haslo>"
     Then Przekierowano na stronę logowania
     And Wyświetlono "<blad_nazwy_uzytkownika>" i "<blad_hasla>" i "<blad_ogolny>" podczas logowania
+   # Kroki są zaimplementowane
 
     Examples: Login i hasło
       | login | haslo         | blad_nazwy_uzytkownika | blad_hasla                                           | blad_ogolny       |

@@ -211,13 +211,11 @@ def step_impl(login_page, login_api):
 
 @when('Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"')
 def step_impl(account_init_page, haslo, potwierdzenie_hasla):
-    pass
-    # assert account_init_page. == haslo
-    # assert account_init_page. == potwierdzenie_hasla
+    assert account_init_page.password_input.set_value(haslo)  # bug - not implemented inputs
+    assert account_init_page.password_confirmation_input.set_value(potwierdzenie_hasla)
 
 
 @given('Wyświetlono "<blad_hasla>" i "<blad_potwierdzenia_hasla>" podczas inicjacji')
 def step_impl(account_init_page, blad_hasla, blad_potwierdzenia_hasla):
-    pass
-    # assert account_init_page. == blad_hasla
-    # assert account_init_page. == blad_potwierdzenia_hasla
+    assert account_init_page.password_input.get_validation() == blad_hasla  # bug - not implemented inputs
+    assert account_init_page.password_confirmation_input.get_validation() == blad_potwierdzenia_hasla

@@ -33,7 +33,11 @@ class LoginAPI(BaseAPI):
     #     return self.send_request('get', self.myself)
 
     def get_roles(self):
-        return self.send_request('get', self.role)
+        roles = self.send_request('get', self.role)
+        roles_dict: dict = {}
+        for role in roles:
+            roles_dict[role['name']] = role
+        return roles_dict
 
     def get_all_users(self) -> dict:
         """
@@ -60,13 +64,14 @@ class LoginAPI(BaseAPI):
         :return: wartość żądania get /user/myself
         """
         roles = self.get_roles()
-        for role in roles:
-            if role['name'] == 'System Administrator':
-                admin_type_id = role['id']
-                continue
-            else:
-                admin_type_id = role['id']
-                continue
+        admin_type_id = roles['System Administrator']['id']
+        # for role in roles:
+        #     if role['name'] == 'System Administrator':
+        #         admin_type_id = role['id']
+        #         continue
+        #     else:
+        #         admin_type_id = role['id']
+        #         continue
         if user_data['roleIds'][0] != admin_type_id:
             user_data['roleIds'][0] = admin_type_id
             user_data['tags'][0] = [f'bos:profile_company_id:{admin_type_id}']
@@ -76,6 +81,8 @@ class LoginAPI(BaseAPI):
         """
         :return:
         """
+        roles = self.get_roles()
+        user_data['roleIds'] = [roles['System Administrator']['id']]
         users = self.get_all_users()
         user_id = users[name]['id']
         data = json.dumps(user_data)
