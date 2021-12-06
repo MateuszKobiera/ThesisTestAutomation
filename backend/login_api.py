@@ -52,7 +52,7 @@ class LoginAPI(BaseAPI):
 
     def get_user_details(self, user_id: str) -> dict:
         """
-        Return dict with o
+        Return dict with user details
         :param user_id:
         :return:
         """
@@ -60,6 +60,7 @@ class LoginAPI(BaseAPI):
 
     def post_create_user(self, user_data: dict):
         """
+        Create a new local user in the system
         Pobranie danych zalogowanego użytkownika
         :return: wartość żądania get /user/myself
         """
@@ -74,11 +75,14 @@ class LoginAPI(BaseAPI):
         #         continue
         if user_data['roleIds'][0] != admin_type_id:
             user_data['roleIds'][0] = admin_type_id
-            user_data['tags'][0] = [f'bos:profile_company_id:{admin_type_id}']
-        return self.send_request('post', self.user)
+        if 'tags' in user_data.keys():
+            user_data['tags'][0] = f'bos:profile_company_id:{admin_type_id}'
+        data = json.dumps(user_data)
+        return self.send_request('post', self.user, data=data)
 
     def put_initialize_account_data(self, name: str, user_data: dict):
         """
+        Update an existing local user in the system
         :return:
         """
         roles = self.get_roles()

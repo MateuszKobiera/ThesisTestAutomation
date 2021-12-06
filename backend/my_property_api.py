@@ -50,7 +50,7 @@ class MyPropertyAPI(BaseAPI):
             raise NameError('Check type of template na tags of property_data')
         property_data['templateId'] = zone_templates[template_type]['id']
         data = json.dumps(property_data)
-        return self.send_request('put', self.zone_instance, data=data)
+        return self.send_request('post', self.zone_instance, data=data)
 
     def put_property(self, property_data: dict):
         """

@@ -24,6 +24,8 @@ class BaseAPI:
         call = getattr(requests, request_type)
         try:
             response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs)
+            if response.status_code not in [200, 201, 202]:
+                raise ValueError(response.json())
             return response.json()
         except JSONDecodeError:
             if response.reason == 'No Content':

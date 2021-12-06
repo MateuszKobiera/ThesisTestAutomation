@@ -189,7 +189,7 @@ def test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin(setup_admin_user, 
 
     # Step 2
     login_page.set_username('User')
-    login_page.set_password('Smartspaces1!')
+    login_page.set_password('Smartspaces2!')
     login_page.choose_mode('Configuration')
     login_page.click_login()
     terms_page = TermsAndConditionsPage(browser)

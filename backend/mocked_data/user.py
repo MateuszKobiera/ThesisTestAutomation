@@ -1,5 +1,5 @@
 def another_user() -> dict:
-    return dict(authenticationProviderId="Local", firstname="User", lastname="", password="Smartspaces1!",
+    return dict(authenticationProviderId="Local", firstname="User", lastname="", password="Smartspaces2!",
                 initials="US", company="ABB", email="", phone="2312312312", name="User",
                 roleIds=[""], hasAccessFromCloud=False,
                 tags=["bos:profile_company_id:3b8855b7-f69a-44a1-9fbb-30537b5f58ec"])
