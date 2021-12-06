@@ -182,7 +182,7 @@ def test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin(setup_admin_user, 
         Pole Confirm new password różni się od hasła wpisanego w pole 'Enter new password'
         11. Dane zostały poprawnie zapisane. Przekierowano na stronę główną aplikacji, gdzie wszystkie pola są dostępne.
     """
-    # Preconditions
+    # Preconditions done as fixtures
 
     # Step 1
     assert login_page.driver.current_url == login_page.url
