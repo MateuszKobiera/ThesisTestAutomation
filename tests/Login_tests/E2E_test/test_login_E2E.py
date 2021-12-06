@@ -3,6 +3,7 @@ import pytest
 from frontend.objects.Pages.account_initalization_page import AccountInitializationPage
 from frontend.objects.Pages.menu_page import MenuPage
 from frontend.objects.Pages.terms_and_conditions_page import TermsAndConditionsPage
+from tests.Initialization_tests.conftest import PASSWORD_VALIDATION
 
 
 @pytest.mark.order(2)
@@ -143,7 +144,7 @@ def test_pierwsze_logowanie_administratora(login_page, browser):
 
 @pytest.mark.order(3)
 def test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin(setup_admin_user, setup_building, setup_another_user,
-                                                              login_page, login_api, my_property_api):
+                                                              login_page, login_api, my_property_api, browser):
     """
     Pierwsze logowanie dla użytkowników innych niż 'Admin'
     WARUNKI WSTĘPNE:
@@ -184,23 +185,78 @@ def test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin(setup_admin_user, 
     # Preconditions
 
     # Step 1
+    assert login_page.driver.current_url == login_page.url
 
     # Step 2
+    login_page.set_username('User')
+    login_page.set_password('Smartspaces1!')
+    login_page.choose_mode('Configuration')
+    login_page.click_login()
+    terms_page = TermsAndConditionsPage(browser)
+    terms_page.wait_for_loading_indicator()
+    assert terms_page.driver.current_url == terms_page.url  # bug - for user there are not displayed terms and acc data
 
     # Step 3
+    terms_page.scroll_terms_and_policy()
+    assert terms_page.terms_condition_checkbox.is_active()
+    assert terms_page.privacy_policy_checkbox.is_active()
 
     # Step 4
+    terms_page.accept_terms_and_policy()
+    assert terms_page.save_button.is_active()
 
     # Step 5
+    terms_page.save()
+    terms_page.launch_initialization()
 
     # Step 6
+    account_init_page = AccountInitializationPage(browser)
+    assert account_init_page.driver.current_url == account_init_page.url
+    account_init_page.save()
+    assert account_init_page.driver.current_url == account_init_page.url
+    assert account_init_page.company_input.get_validation() == 'Company is required'
+    assert account_init_page.first_name_input.get_validation() == 'First name is required'
+    assert account_init_page.last_name_input.get_validation() == 'Last name is required'
+    assert account_init_page.email_input.get_validation() == 'Email is required'
+    assert account_init_page.phone_input.get_validation() == 'Phone is required'
 
     # Step 7
+    assert account_init_page.company_input.is_active()
+    assert account_init_page.role_input.is_active() is False
+    assert account_init_page.first_name_input.is_active()
+    assert account_init_page.last_name_input.is_active()
+    assert account_init_page.email_input.is_active()
+    assert account_init_page.phone_input.is_active()
+    assert account_init_page.password_input.is_active()
+    assert account_init_page.password_confirmation_input.is_active()
 
     # Step 8
+    account_init_page.set_first_name('Filip')
+    account_init_page.set_last_name('Kowalski')
+    account_init_page.set_company('ABB')
+    account_init_page.set_initials('FK')
+    account_init_page.set_email('filip.kowalski121212@mail.com')
+    account_init_page.set_phone('987654321')
+    for password in PASSWORD_VALIDATION:
+        account_init_page.password_input.set_value(password)
+        account_init_page.password_confirmation_input.set_value(password)
+        assert account_init_page.password_input.get_validation() == PASSWORD_VALIDATION[password]
 
     # Step 9
+    account_init_page.password_input.set_value('Smartspaces2!')
+    account_init_page.password_confirmation_input.set_value('Smartspaces2!')
+    assert account_init_page.password_input.get_validation() == 'Password must be different from actual password.'
 
     # Step 10
+    account_init_page.password_input.set_value('Smartspaces3!')
+    account_init_page.password_confirmation_input.set_value('Smartspaces4!')
+    assert account_init_page.password_confirmation_input.get_validation() == 'Passwords must be the same.'
 
     # Step 11
+    account_init_page.password_input.set_value('Smartspaces3!')
+    account_init_page.password_confirmation_input.set_value('Smartspaces3!')
+    account_init_page.save()
+    account_init_page.wait_for_loading_indicator()
+    menu_page = MenuPage(browser)
+    assert menu_page.driver.current_url == menu_page.url
+
