@@ -1,6 +1,7 @@
 import pytest
 
 from frontend.objects.Pages.account_initalization_page import AccountInitializationPage
+from frontend.objects.Pages.menu_page import MenuPage
 from frontend.objects.Pages.terms_and_conditions_page import TermsAndConditionsPage
 
 
@@ -105,12 +106,39 @@ def test_pierwsze_logowanie_administratora(login_page, browser):
     assert account_init_page.driver.current_url == account_init_page.url
     account_init_page.save()
     assert account_init_page.driver.current_url == account_init_page.url
+    assert account_init_page.company_input.get_validation() == 'Company is required'
+    assert account_init_page.first_name_input.get_validation() == 'First name is required'
+    assert account_init_page.last_name_input.get_validation() == 'Last name is required'
+    assert account_init_page.email_input.get_validation() == 'Email is required'
+    assert account_init_page.phone_input.get_validation() == 'Phone is required'
 
     # Step 11
+    assert account_init_page.company_input.is_active()
+    assert account_init_page.role_input.is_active() is False
+    assert account_init_page.first_name_input.is_active()
+    assert account_init_page.last_name_input.is_active()
+    assert account_init_page.email_input.is_active()
+    assert account_init_page.phone_input.is_active()
 
     # Step 12
+    account_init_page.set_first_name('Adam')
+    account_init_page.set_last_name('Nowak')
+    account_init_page.set_company('ABB')
+    account_init_page.set_initials('ABCD')
+    account_init_page.set_email('ABCD')
+    account_init_page.set_phone('ABCD')
+    assert account_init_page.last_name_input.get_validation() == 'Initials must be less than 3 characters'
+    assert account_init_page.email_input.get_validation() == 'Email is not valid'
+    assert account_init_page.phone_input.get_validation() == 'Phone number is not valid'
 
     # Step 13
+    account_init_page.set_initials('AN')
+    account_init_page.set_email('adam.nowak12121212@mail.com')
+    account_init_page.set_phone('123456789')
+    account_init_page.save()
+    account_init_page.wait_for_loading_indicator()
+    menu_page = MenuPage(browser)
+    assert menu_page.driver.current_url == menu_page.url
 
 
 @pytest.mark.order(3)
