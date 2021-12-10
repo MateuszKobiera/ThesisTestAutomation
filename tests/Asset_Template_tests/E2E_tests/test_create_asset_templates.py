@@ -99,7 +99,7 @@ def test_stworz_asset_template_z_datapointami_i_properties(asset_templates_page)
 
     datapoints_table = asset_templates_page.points_properties_table.get_table(unique_column_name='POINT')
     for point_format in ['Float', 'Integer', 'Boolean', 'Enum']:
-        assert datapoints_table[point_format]['POINT'] == data[point_format]['format']
+        assert datapoints_table[point_format]['POINT'] == data[point_format]['format']  # bug - there is possibility to click save enum without enumartion
         assert datapoints_table[point_format]['DIRECTION'] == data[point_format]['type']
 
     # step 7 & 8 & 9 & 11

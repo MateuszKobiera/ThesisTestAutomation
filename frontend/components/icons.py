@@ -22,13 +22,13 @@ class Icons(BaseComponent):
         """
         clear_button = self.xpath + "//div[@title='Pick a background color']"
         self.get_element((clear_button, "Button")).click()
-        self.wait_for_element(clear_button + '/div[2]')
+        self.get_element((clear_button + '/div[2]', "Base")).wait_for_element()
         input_xpath = clear_button + "//label[text()='{}']/preceding-sibling::input"
         change_input_type_xpath = clear_button + "/div[2]//*[name()='svg']"
         color_types = 0
         if color_type.lower() == 'hex':
             if type(color) == str:
-                while self.is_element_visible((input_xpath.format('hex'), "Input")) is False and color_types < 3:
+                while self.get_element((input_xpath.format('hex'), "Input")).is_element_visible() is False and color_types < 3:
                     self.get_element(change_input_type_xpath).click()
                     color_types += 1
                     if color_types >= 3:
@@ -38,7 +38,7 @@ class Icons(BaseComponent):
                 raise TypeError(f'Wrong type of color argument, there is {type(color)}, but should be str for hex.')
         elif color_type.lower() == 'rgb':
             if type(color) == tuple:
-                while self.is_element_visible((input_xpath.format('r'), "Input")) is False and color_types < 3:
+                while self.get_element((input_xpath.format('r'), "Input")).is_element_visible() is False and color_types < 3:
                     self.get_element(change_input_type_xpath).click()
                     color_types += 1
                     if color_types >= 3:
@@ -50,7 +50,7 @@ class Icons(BaseComponent):
                 raise TypeError(f'Wrong type of color argument, there is {type(color)}, but should be tuple for rgb.')
         elif color_type.lower() == 'hsl':
             if type(color) == tuple:
-                while self.is_element_visible((input_xpath.format('h'), "Input")) is False and color_types < 3:
+                while self.get_element((input_xpath.format('h'), "Input")).is_element_visible() is False and color_types < 3:
                     self.get_element(change_input_type_xpath).click()
                     color_types += 1
                     if color_types >= 3:
@@ -79,7 +79,7 @@ class Icons(BaseComponent):
         """
         select_icon_button = self.xpath + "//div[@title='Pick or import a symbol']"
         self.get_element((select_icon_button, "Button")).click()
-        self.wait_for_element(select_icon_button + '/div')
+        self.get_element((select_icon_button + '/div', "Button")).wait_for_element()
         self.get_element((select_icon_button + f"/div/div/div[2]/div[{number_of_icon}]", "Button")).click()
 
 

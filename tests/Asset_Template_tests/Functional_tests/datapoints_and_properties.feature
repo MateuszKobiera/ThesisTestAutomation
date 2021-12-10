@@ -6,7 +6,7 @@ Feature: Sprawdza dodanie i edycję wszystkich standardowych datapointów i prop
     And Dodano Asset template
     And Jestem w trybie edycji Asset template'u
     When Kliknę przycisk 'Add datapoint'
-    And Wypełnie wymagane dane
+    And Wypełnię wymagane dane dla datapointu
     And Kliknę przycisk Save
     Then Dodano nowy datapoint
     # Należy powtórzyć dla każdego typu standardowego datapointu
@@ -26,7 +26,7 @@ Feature: Sprawdza dodanie i edycję wszystkich standardowych datapointów i prop
     And Dodano Asset template
     And Jestem w trybie edycji Asset template'u
     When Kliknę przycisk 'Add property'
-    And Wypełnie wymagane dane
+    And Wypełnię wymagane dane dla property
     And Kliknę przycisk Save
     Then Dodano nowy property
     # Należy powtórzyć dla każdego typu standardowego property
@@ -39,3 +39,4 @@ Feature: Sprawdza dodanie i edycję wszystkich standardowych datapointów i prop
     And Dokonam edycji danych dla property
     And Kliknę przycisk Save
     Then Nowe dane dla property zostały zapisane
+    # Należy powtórzyć dla każdego typu standardowego property

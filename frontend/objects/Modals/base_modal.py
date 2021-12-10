@@ -26,7 +26,7 @@ class BaseModal(BasePage):
         """
         save_button = self.get_element((self.save_xpath, 'Button'))
         save_button.click()
-        save_button.wait_for_element_to_disappear(save_button, timeout=10)
+        save_button.wait_for_element_to_disappear(timeout=20)
 
     def cancel(self) -> None:
         """
@@ -40,7 +40,9 @@ class BaseModal(BasePage):
         Kliknięcie przycisku 'X' jako zamknięcie okna dialogowego i anulowanie operacji
         :return:
         """
-        self.get_element((self.x_close_button, 'Button')).click()
+        close_button = self.get_element((self.x_close_button, 'Button'))
+        close_button.click()
+        close_button.wait_for_element_to_disappear()
 
     def get_title(self) -> str:
         """
