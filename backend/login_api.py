@@ -6,7 +6,6 @@ from backend.Base_API_handler import BaseAPI
 class LoginAPI(BaseAPI):
     def __init__(self):
         super().__init__()
-        self.init_done = 'initialization'
         self.role = 'role'
         self.user = 'user'
         self.factory_reset = 'device/factoryreset'
@@ -17,13 +16,6 @@ class LoginAPI(BaseAPI):
         :return: True jeśli inicjacja została wykonana, False jeśli nie
         """
         return True if self.send_request('get', self.init_done)['status'] == 'StructureInitializationDone' else False
-
-    def get_initialization_status(self) -> str:
-        """
-        Pobranie statusu inicjacji Admina
-        :return:
-        """
-        return self.send_request('get', self.init_done)['status']
 
     # def get_myself(self):
     #     """

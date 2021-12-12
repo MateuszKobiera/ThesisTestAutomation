@@ -2,12 +2,14 @@ import pytest
 from pytest_bdd import scenario, given, when, then
 
 
+@pytest.mark.order(5)
 @pytest.mark.NoInit
 @scenario("initialization.feature", "Walidacja podczas Inicjacji")
-def test_password_init_validation():
+def test_password_init_validation(factory_reset):
     pass
 
 
+@pytest.mark.order(6)
 @pytest.mark.NoInit
 @scenario("initialization.feature", "Poprawna Inicjacja")
 def test_password_init():

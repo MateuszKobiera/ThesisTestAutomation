@@ -56,3 +56,11 @@ def setup_another_user(login_api):
     if not len(login_api.get_all_users()) > 1:
         login_api.post_create_user(another_user())
 
+
+@pytest.fixture
+def setup_admin_password(login_api):
+    if login_api.get_initialization_status() != 'NotDone':
+        pass
+    else:
+        ValueError('Init not done')
+

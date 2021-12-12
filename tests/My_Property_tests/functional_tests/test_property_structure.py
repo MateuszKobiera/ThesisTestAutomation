@@ -1,18 +1,22 @@
+import pytest
 from pytest_bdd import scenario, given, then, when
 
 from frontend.locators.Pages.my_property_locators import MyPropertyLocators
 
 
+@pytest.mark.order(15)
 @scenario("property_structure.feature", "Wyświetlanie okna dialogowego dla budynku")
 def test_dialog_opened():
     pass
 
 
+@pytest.mark.order(16)
 @scenario("property_structure.feature", "Dodanie pierwszego budynku")
 def test_add_building():
     pass
 
 
+@pytest.mark.order(17)
 @scenario("property_structure.feature", "Dodanie piętra dla budynku")
 def test_add_floor():
     pass

@@ -7,7 +7,7 @@ from tests.Initialization_tests.conftest import PASSWORD_VALIDATION
 
 
 @pytest.mark.order(2)
-def test_pierwsze_logowanie_administratora(login_page, browser):
+def test_pierwsze_logowanie_administratora(setup_admin_password, login_page, browser):
     """
     Pierwsze logowanie administratora.
     Druga część inicjacji, gdzie potwierdza się zgody użytkownika i wpisuje dane użytkownika 'Admin'.

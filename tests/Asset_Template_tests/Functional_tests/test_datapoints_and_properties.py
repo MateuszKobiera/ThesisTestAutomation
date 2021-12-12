@@ -1,20 +1,22 @@
 import random
 
-from frontend.locators.Modals.add_datapoint_property_modal_locators import AddDatapointPropertyLocators
+import pytest
+
 from frontend.objects.Modals.add_datapoint_property_modal import AddDatapointPropertyModal
 from tests.Asset_Template_tests.conftest import TEMPLATE_FUNCTIONAL_TESTS
 from utils.string_editor import create_random_string
 
 
+@pytest.mark.order(18)
 def test_add_datapoints(asset_templates_page):
-    """
+    """ Test dodający wszystkie standardowe datapointy
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
         - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
         1. Kliknij przycisk 'Add datapoint'
-        2. Wybierz każdy standardowy datapoint, zedytuj i zapisz
+        2. Wybierz każdy standardowy datapoint, poddaj edycji i zapisz
     OCZEKIWANY REZULTAT:
         1. Okno dialogowe dla dodania datapointu zostało wyświetlone
         2. Dodano wszystkie standardowe datapointy
@@ -84,17 +86,21 @@ def test_add_datapoints(asset_templates_page):
         assert datapoint_name in points_table.keys()
 
 
+@pytest.mark.order(19)
 def test_edit_datapoints(asset_templates_page):
-    """
+    """ Test edytujące wszystkie dostępne datapointy
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
         - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
-        1.
+        1. Przejdź do zakładki 'Points'
+        2. Kliknij edycję każdego datapointu, zmień nazwę, typ, dodaj tag i zapisz
     OCZEKIWANY REZULTAT:
-        1.
+        1. Lista datapointów jest wyświetlona
+        2. Każdy datapoint został poprawnie poddany edycji i zapisany
     """
+    # Preconditions
     assert asset_templates_page.url == asset_templates_page.driver.current_url
     template_table = asset_templates_page.template_table(table_name='Central').get_table(
         unique_column_name='TEMPLATE NAME')
@@ -132,15 +138,16 @@ def test_edit_datapoints(asset_templates_page):
         assert datapoint_name in points_table.keys()
         
 
+@pytest.mark.order(20)
 def test_add_properties(asset_templates_page):
-    """
+    """ Test do dodania wszystkich standardowych properties
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
         - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
-        1. Kliknij przycisk 'Add datapoint'
-        2. Wybierz każdy standardowy datapoint, zedytuj i zapisz
+        1. Kliknij przycisk 'Add property'
+        2. Wybierz każdy standardowy datapoint, poddaj edycji i zapisz
     OCZEKIWANY REZULTAT:
         1. Okno dialogowe dla dodania datapointu zostało wyświetlone
         2. Dodano wszystkie standardowe datapointy
@@ -212,6 +219,7 @@ def test_add_properties(asset_templates_page):
         assert datapoint_name in points_table.keys()
 
 
+@pytest.mark.order(21)
 def test_edit_properties(asset_templates_page):
     """
     WARUNKI WSTĘPNE:

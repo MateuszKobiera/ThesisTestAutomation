@@ -19,43 +19,45 @@ CONVERTERS2 = {
 }
 
 
-@pytest.mark.NoInit
+@pytest.mark.order(7)
 @scenario("login.feature", "Wyświetlanie błędów podczas logowania", example_converters=CONVERTERS)
 def test_login_validation():
     pass
 
 
-@pytest.mark.NoInit
+@pytest.mark.order(8)
 @scenario("login.feature", "Logowanie się bez zainicjowanego użytkownika")
 def test_login_user_no_initialized():
     pass
 
 
-@scenario("login.feature", "Otwieranie strony logowania z zainicjowanym użytkownikiem")
-def test_login_with_init():
-    """Struktura wywołania testu"""
-    pass
-
-
-@pytest.mark.NoInit
+@pytest.mark.order(9)
 @scenario("login.feature", "Zatwierdzanie Zasad i warunków")
 def test_accept_terms_policy():
     pass
 
 
+@pytest.mark.order(10)
 @pytest.mark.NoInit
 @scenario("login.feature", "Wyświetlanie błędów podczas inicjacji bez danych")
 def test_account_init_validation_no_data():
     pass
 
 
-@pytest.mark.NoInit
+@pytest.mark.order(11)
 @scenario("login.feature", "Inicjacja Admina po logowaniu")
 def test_account_init():
     pass
 
 
-@pytest.mark.NoInit
+@pytest.mark.order(12)
+@scenario("login.feature", "Otwieranie strony logowania z zainicjowanym użytkownikiem")
+def test_login_with_init():
+    """Struktura wywołania testu"""
+    pass
+
+
+@pytest.mark.order(13)
 @scenario("login.feature", "Wyświetlanie błędów podczas inicjacji konta innego niż Admin", example_converters=CONVERTERS2)
 def test_account_user_init():
     pass
