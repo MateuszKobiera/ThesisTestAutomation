@@ -59,24 +59,15 @@ class AddDatapointPropertyModal(BaseModal):
             self.get_multiple_elements(depth0)[x].click()
             time.sleep(0.2)
             datapoint_names[self.get_multiple_elements(depth0)[x].text] = {}
-            # datapoint_names[self.get_multiple_elements(depth0)[x].text]['element'] = self.get_multiple_elements(depth0)[x]
         for point in datapoint_names:
             for y in range(0, len(self.get_multiple_elements(depth1.format(point)))):
                 self.get_multiple_elements(depth1.format(point))[y].click()
                 time.sleep(0.2)
                 datapoint_names[point][self.get_multiple_elements(depth1.format(point))[y].text] = []
-                # datapoint_names[point][self.get_multiple_elements(depth1.format(point))[y].text]['element'] = self.get_multiple_elements(depth1.format(point))[y]
-                # if 'hasChildern' in datapoint_names[point]['element'].get_attribute('class'):
-                #     datapoint_names[point]['element'].click()
-                #     time.sleep(0.2)
         for point1 in datapoint_names:
             for point2 in datapoint_names[point1]:
-                # if 'hasChildern' in datapoint_names[point1][point2]['element'].get_attribute('class'):
-                #     datapoint_names[point1][point2].click()
-                #     time.sleep(0.2)
                     for z in range(0, len(self.get_multiple_elements(depth2.format(point1, point2)))):
                         datapoint_names[point1][point2].append(self.get_multiple_elements(depth2.format(point1, point2))[z].text)
-                        # datapoint_names[point1][point2][self.get_multiple_elements(depth2.format(point1, point2))[z].text]['element'] = self.get_multiple_elements(depth2.format(point1, point2))[z]
         datapoint_names.pop('Custom')
         return datapoint_names
 
@@ -85,6 +76,9 @@ class AddDatapointPropertyModal(BaseModal):
 
     def get_name(self) -> str:
         return self.get_element(AddDatapointPropertyLocators.name_input).get_value()
+
+    def get_all_value_options(self) -> list:
+        return self.get_element(AddDatapointPropertyLocators.default_value_element).get_all_options()
 
     def click_choose_datapoint(self, category: str, subcategory: str = '', datapoint: str = '') -> None:
         """

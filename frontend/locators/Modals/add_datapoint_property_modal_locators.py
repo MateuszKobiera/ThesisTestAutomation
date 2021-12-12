@@ -7,6 +7,7 @@ class AddDatapointPropertyLocators:
     min_value_input = '//*[@id="min"]', "Input"
     max_value_input = '//*[@id="max"]', "Input"
     display_unit_dropdown = '//*[@id="displayUnitId"]', "Dropdown"
-    tags_component = "(//div[@class='ReactModalPortal']//div[contains(@class,'grid-cell')])[last()-1]", "Tags"
+    tags_component = "//div[@class='ReactModalPortal']//*[text()='Search tags']/../..", "Tags"
     datapoint_names = "//span[contains(@class, 'Collapsible__title')]", 'Button'
     expander_datapoints = "//div[contains(@class, 'expander')]", "Button"
+    default_value_element = "//*[@id='defaultValue']", 'Dropdown'

@@ -41,3 +41,15 @@ class Dropdown(Input):
         """
         validation_xpath = self.xpath + '/div[contains(@class,"comp")]'
         return self.get_base_element(validation_xpath).get_text()
+
+    def get_all_options(self) -> list:
+        """
+
+        :return:
+        """
+        all_options_xpath = "//*[contains(@id,'option')]"
+        all_options_elements = self.driver.find_elements_by_xpath(all_options_xpath)
+        all_options_text = []
+        for element in all_options_elements:
+            all_options_text.append(element.driver.text)
+        return all_options_text
