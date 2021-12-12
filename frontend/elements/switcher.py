@@ -10,7 +10,7 @@ class Switcher(Button):
     def __init__(self, driver: webdriver, xpath: str):
         super().__init__(driver, xpath)
 
-    def is_active(self) -> bool:
+    def is_checked(self) -> bool:
         """
         Checks if switcher is active
         :return: True if active

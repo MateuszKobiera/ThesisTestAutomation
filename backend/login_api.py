@@ -9,6 +9,7 @@ class LoginAPI(BaseAPI):
         self.role = 'role'
         self.user = 'user'
         self.factory_reset = 'device/factoryreset'
+        self.core_init = 'initialization/core'
 
     def get_init_done(self) -> bool:
         """
@@ -58,6 +59,8 @@ class LoginAPI(BaseAPI):
         """
         roles = self.get_roles()
         admin_type_id = roles['System Administrator']['id']
+        all_users = self.get_all_users()
+        user_data['id'] = all_users['Admin']['id']
         # for role in roles:
         #     if role['name'] == 'System Administrator':
         #         admin_type_id = role['id']
@@ -79,8 +82,8 @@ class LoginAPI(BaseAPI):
         """
         roles = self.get_roles()
         user_data['roleIds'] = [roles['System Administrator']['id']]
-        users = self.get_all_users()
-        user_id = users[name]['id']
+        user_id = self.get_all_users()[name]['id']
+        user_data['id'] = user_id
         data = json.dumps(user_data)
         return self.send_request('put', self.user+f'/{user_id}', data=data)
 
@@ -90,3 +93,7 @@ class LoginAPI(BaseAPI):
         :return:
         """
         self.send_request('post', self.factory_reset)
+
+    def post_core_init(self):
+        self.send_request('post', self.core_init)
+

@@ -28,7 +28,7 @@ class AssetTemplatesPage(BasePage):
         return self.get_component_with_format(AssetTemplatesLocators.template_table, table_name)
 
     def set_master_slave(self):
-        if not self.get_element(AssetTemplatesLocators.master_slave_switcher).is_active():
+        if not self.get_element(AssetTemplatesLocators.master_slave_switcher).is_checked():
             self.get_element(AssetTemplatesLocators.master_slave_switcher).click()
 
     def click_add_datapoint(self) -> AddDatapointPropertyModal:

@@ -13,6 +13,7 @@ class BaseAPI:
         self.base_url = 'http://192.168.1.254/api/'
         self.authentication = 'authentication'
         self.init_done = 'initialization'
+        self.version = 'version'
         if self.get_initialization_status() == 'NotDone':
             self.patch_admin_password()
         else:
@@ -65,3 +66,6 @@ class BaseAPI:
         """
         data = json.dumps({'password': "Smartspaces1!"})
         self.send_request('patch', self.authentication, data=data)
+
+    def get_version(self) -> dict:
+        return self.send_request('get', self.version)

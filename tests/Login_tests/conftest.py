@@ -39,8 +39,9 @@ def my_property_api():
 
 @pytest.fixture
 def setup_admin_user(login_api):
-    if login_api.get_init_done() is False:
-        login_api.post_create_user(admin_account_init())
+    if login_api.get_initialization_status() not in ['CoreInitializationDone', 'StructureInitializationDone']:
+        login_api.put_initialize_account_data('Admin', admin_account_init())
+        login_api.post_core_init()
 
 
 @pytest.fixture
@@ -58,9 +59,9 @@ def setup_another_user(login_api):
 
 
 @pytest.fixture
-def setup_admin_password(login_api):
+def setup_admin_password(login_api, browser):
     if login_api.get_initialization_status() != 'NotDone':
-        pass
+        browser.get('http://192.168.1.254/')
     else:
         ValueError('Init not done')
 

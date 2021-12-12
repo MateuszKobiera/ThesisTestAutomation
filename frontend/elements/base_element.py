@@ -92,3 +92,9 @@ class BaseElement:
         except TimeoutException:
             self.logger.info(f'Element {self.xpath} was not found - it was not visible in {timeout}s')
             return False
+
+    def is_active(self) -> bool:
+        if 'disabled' in self.driver.get_attribute('class'):
+            return True
+        else:
+            return False
