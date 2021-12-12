@@ -17,9 +17,9 @@ class MenuPage(BasePage):
     def check_enabled_widgets(self, widgets: tuple):
         for widget in MenuLocators.all_main_widgets:
             if widget in widgets:
-                assert self.get_element(widget).is_element_visible() is True
+                assert self.is_element_visible(widget[0]) is True
             else:
-                assert self.get_element(widget).is_element_visible(widget) is False
+                assert self.is_element_visible(widget[0]) is False
 
     def go_to_my_property(self) -> None:
         """Opens My property widget by clicking on it"""

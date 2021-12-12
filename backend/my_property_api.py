@@ -40,10 +40,10 @@ class MyPropertyAPI(BaseAPI):
         zone_instances = self.get_zone_instances()
         if 'structure' in property_data['tags'][0]:
             template_type = property_data['tags'][0].split(':')[2].capitalize()
-            property_data['parentIds'] = zone_instances['Budynek']['id']
+            property_data['parentIds'] = [zone_instances['Budynek']['id']]
         elif 'building' in property_data['tags'][0]:
             template_type = property_data['tags'][0].split(':')[1].capitalize()
-            property_data['parentIds'] = zone_instances['Sukiennice']['id']
+            property_data['parentIds'] = [zone_instances['Sukiennice']['id']]
         elif 'site' in property_data['tags'][0]:
             template_type = property_data['tags'][0].split(':')[1].capitalize()
         else:

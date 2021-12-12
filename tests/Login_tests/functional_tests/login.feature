@@ -58,9 +58,9 @@ Feature: Test login page
 
   @AutomationOnly @ManualE2E @Pierwsze_logowanie_dla_użytkowników_innych_niż_'Admin'
   Scenario Outline: Wyświetlanie błędów podczas inicjacji konta innego niż Admin
-    Given Jestem na stronie inicjacji danych
+    Given Jestem na stronie inicjacji danych jako User
     And Użytkownik Admin jest zainicjowany
-    And Użytkownik User1 jest stworzony, nie zainicjowany
+    And Użytkownik User jest stworzony, nie zainicjowany
     When Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"
     Then Przekierowano na stronę inicjacji danych
     And Wyświetlono "<blad_hasla>" i "<blad_potwierdzenia_hasla>" podczas inicjacji

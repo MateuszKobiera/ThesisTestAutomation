@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from selenium import webdriver
 
@@ -32,8 +34,19 @@ def login_api():
 
 
 @pytest.fixture
-def factory_reset(login_api, initialization_page_no_wait):
+def factory_reset(login_api, initialization_page_no_wait, browser):
     if login_api:
         login_api.post_factory_rest()
-        initialization_page_no_wait.wait_for_loading_indicator(time_to_wait=60, timeout=360)
+        time.sleep(50)
+        for tries in range(0, 100):
+            try:
+                login_api.get_initialization_status()
+                break
+            except (ValueError, ConnectionError):
+                tries += 1
+                time.sleep(5)
+        time.sleep(10)
+        browser.get('http://192.168.1.254/')
+        initialization_page_no_wait.wait_for_loading_indicator()
+        assert initialization_page_no_wait.url == initialization_page_no_wait.driver.current_url
 

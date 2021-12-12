@@ -22,19 +22,19 @@ def test_add_datapoints(asset_templates_page):
         2. Dodano wszystkie standardowe datapointy
     """
     # Preconditions
-    # assert asset_templates_page.url == asset_templates_page.driver.current_url
-    # template_table = asset_templates_page.template_table(table_name='Central').get_table(
-    #     unique_column_name='TEMPLATE NAME')
-    # assert template_table[TEMPLATE_FUNCTIONAL_TESTS]['TEMPLATE NAME'] == TEMPLATE_FUNCTIONAL_TESTS
-    # asset_templates_page.template_table('Central').edit_row(unique_column_name='TEMPLATE NAME',
-    #                                                         row_name=TEMPLATE_FUNCTIONAL_TESTS)
-    add_template_modal = asset_templates_page.click_add_button('Central')
-    template_name = f'{create_random_string(5)} {create_random_string(5)}'
-    add_template_modal.set_template_name(template_name)
-    add_template_modal.set_template_type('Boiler')
-    add_template_modal.save()
+    assert asset_templates_page.url == asset_templates_page.driver.current_url
+    template_table = asset_templates_page.template_table(table_name='Central').get_table(
+        unique_column_name='TEMPLATE NAME')
+    assert template_table[TEMPLATE_FUNCTIONAL_TESTS]['TEMPLATE NAME'] == TEMPLATE_FUNCTIONAL_TESTS
     asset_templates_page.template_table('Central').edit_row(unique_column_name='TEMPLATE NAME',
-                                                            row_name=template_name)
+                                                            row_name=TEMPLATE_FUNCTIONAL_TESTS)
+    # add_template_modal = asset_templates_page.click_add_button('Central')
+    # template_name = f'{create_random_string(5)} {create_random_string(5)}'
+    # add_template_modal.set_template_name(template_name)
+    # add_template_modal.set_template_type('Boiler')
+    # add_template_modal.save()
+    # asset_templates_page.template_table('Central').edit_row(unique_column_name='TEMPLATE NAME',
+    #                                                         row_name=template_name)
 
     # step 1
     asset_templates_page.open_tab('Points')
@@ -153,19 +153,19 @@ def test_add_properties(asset_templates_page):
         2. Dodano wszystkie standardowe datapointy
     """
     # Preconditions
-    # assert asset_templates_page.url == asset_templates_page.driver.current_url
-    # template_table = asset_templates_page.template_table(table_name='Central').get_table(
-    #     unique_column_name='TEMPLATE NAME')
-    # assert template_table[TEMPLATE_FUNCTIONAL_TESTS]['TEMPLATE NAME'] == TEMPLATE_FUNCTIONAL_TESTS
-    # asset_templates_page.template_table('Central').edit_row(unique_column_name='TEMPLATE NAME',
-    #                                                         row_name=TEMPLATE_FUNCTIONAL_TESTS)
-    add_template_modal = asset_templates_page.click_add_button('Central')
-    template_name = f'{create_random_string(5)} {create_random_string(5)}'
-    add_template_modal.set_template_name(template_name)
-    add_template_modal.set_template_type('Boiler')
-    add_template_modal.save()
+    assert asset_templates_page.url == asset_templates_page.driver.current_url
+    template_table = asset_templates_page.template_table(table_name='Central').get_table(
+        unique_column_name='TEMPLATE NAME')
+    assert template_table[TEMPLATE_FUNCTIONAL_TESTS]['TEMPLATE NAME'] == TEMPLATE_FUNCTIONAL_TESTS
     asset_templates_page.template_table('Central').edit_row(unique_column_name='TEMPLATE NAME',
-                                                            row_name=template_name)
+                                                            row_name=TEMPLATE_FUNCTIONAL_TESTS)
+    # add_template_modal = asset_templates_page.click_add_button('Central')
+    # template_name = f'{create_random_string(5)} {create_random_string(5)}'
+    # add_template_modal.set_template_name(template_name)
+    # add_template_modal.set_template_type('Boiler')
+    # add_template_modal.save()
+    # asset_templates_page.template_table('Central').edit_row(unique_column_name='TEMPLATE NAME',
+    #                                                         row_name=template_name)
 
     # step 1
     asset_templates_page.open_tab('Properties')

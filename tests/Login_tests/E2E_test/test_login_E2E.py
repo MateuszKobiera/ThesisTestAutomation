@@ -192,9 +192,9 @@ def test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin(setup_admin_user, 
     login_page.set_password('Smartspaces2!')
     login_page.choose_mode('Configuration')
     login_page.click_login()
-    terms_page = TermsAndConditionsPage(browser)
+    terms_page = TermsAndConditionsPage(browser)  # bug - for user there are not displayed terms and acc data
     terms_page.wait_for_loading_indicator()
-    assert terms_page.driver.current_url == terms_page.url  # bug - for user there are not displayed terms and acc data
+    assert terms_page.driver.current_url == terms_page.url
 
     # Step 3
     terms_page.scroll_terms_and_policy()

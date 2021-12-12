@@ -28,8 +28,9 @@ class BasePage(ElementCreation):
         """
         loading_indicator = "//div[contains(@class,'LoadingIndicator')]", 'Base'
         try:
-            self.get_element(loading_indicator).wait_for_element(time_to_wait)
-            self.get_element(loading_indicator).wait_for_element_to_disappear(timeout, polling_frequency)
+            self.get_element(loading_indicator).wait_for_element(timeout=time_to_wait, poll_frequency=polling_frequency)
+            self.get_element(loading_indicator).wait_for_element_to_disappear(timeout=timeout,
+                                                                              poll_frequency=polling_frequency)
         except TimeoutException:
             pass
 

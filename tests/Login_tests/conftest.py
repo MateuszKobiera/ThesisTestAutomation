@@ -46,7 +46,7 @@ def setup_admin_user(login_api):
 
 @pytest.fixture
 def setup_building(my_property_api):
-    if len(my_property_api.get_zone_instances()) == 0:
+    if len(my_property_api.get_zone_instances()) < 3:
         my_property_api.post_property(property_data())
         my_property_api.post_property(building_data())
         my_property_api.post_property(floor_data())
@@ -64,4 +64,12 @@ def setup_admin_password(login_api, browser):
         browser.get('http://192.168.1.254/')
     else:
         ValueError('Init not done')
+
+
+@pytest.fixture
+def log_in_as_user(login_page):
+    login_page.choose_mode('Configuration')
+    login_page.set_username('User')
+    login_page.set_password('Smartspaces2!')
+    login_page.click_login()
 

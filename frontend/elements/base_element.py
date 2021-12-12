@@ -94,7 +94,8 @@ class BaseElement:
             return False
 
     def is_active(self) -> bool:
-        if 'disabled' in self.driver.get_attribute('class'):
-            return True
-        else:
+        if self.driver.get_attribute('disabled') == 'true':
             return False
+        else:
+            return True
+

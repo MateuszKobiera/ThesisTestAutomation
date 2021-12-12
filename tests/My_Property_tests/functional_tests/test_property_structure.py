@@ -25,7 +25,7 @@ def test_add_floor():
 @given('Jestem na stronie My property - Structure')
 def step_impl(log_in, my_property_page):
     my_property_page.open_tab('Structure')
-    my_property_page.wait_for_element(MyPropertyLocators.structure_table)
+    my_property_page.get_element(MyPropertyLocators.structure_table).wait_for_element()
     assert my_property_page.url == my_property_page.driver.current_url
 
 

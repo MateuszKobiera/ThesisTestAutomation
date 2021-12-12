@@ -60,7 +60,6 @@ class LoginAPI(BaseAPI):
         roles = self.get_roles()
         admin_type_id = roles['System Administrator']['id']
         all_users = self.get_all_users()
-        user_data['id'] = all_users['Admin']['id']
         # for role in roles:
         #     if role['name'] == 'System Administrator':
         #         admin_type_id = role['id']
