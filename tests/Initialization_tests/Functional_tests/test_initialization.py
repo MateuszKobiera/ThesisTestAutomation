@@ -12,7 +12,7 @@ from frontend.locators.Pages.initialization_locators import InitializationLocato
 
 @pytest.mark.order(6)
 @scenario("initialization.feature", "Poprawna Inicjacja")
-def test_password_init(factory_reset):
+def test_poprawna_inicjacja(factory_reset):
     pass
 
 

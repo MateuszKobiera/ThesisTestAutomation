@@ -21,44 +21,44 @@ CONVERTERS2 = {
 
 @pytest.mark.order(7)
 @scenario("login.feature", "Wyświetlanie błędów podczas logowania", example_converters=CONVERTERS)
-def test_login_validation():
+def test_wyswietlanie_bledow_podczas_logowania():
     pass
 
 
 @pytest.mark.order(8)
 @scenario("login.feature", "Logowanie się bez zainicjowanego użytkownika")
-def test_login_user_no_initialized():
+def test_logowanie_sie_bez_zainicjowanego_uzytkownika():
     pass
 
 
 @pytest.mark.order(9)
 @scenario("login.feature", "Zatwierdzanie Zasad i warunków")
-def test_accept_terms_policy():
+def test_zatwierdzanie_zasad_i_warunkow():
     pass
 
 
 @pytest.mark.order(10)
 @scenario("login.feature", "Wyświetlanie błędów podczas inicjacji bez danych")
-def test_account_init_validation_no_data():
+def test_wyswietlanie_bledow_podczas_inicjacji_bez_danych():
     pass
 
 
 @pytest.mark.order(11)
 @scenario("login.feature", "Inicjacja Admina po logowaniu")
-def test_account_init():
+def test_inicjacja_admina_po_logowaniu():
     pass
 
 
 @pytest.mark.order(12)
 @scenario("login.feature", "Otwieranie strony logowania z zainicjowanym użytkownikiem")
-def test_login_with_init():
+def test_otwieranie_strony_logowania_z_zainicjowanym_uzytkownikiem():
     """Struktura wywołania testu"""
     pass
 
 
 @pytest.mark.order(13)
 @scenario("login.feature", "Wyświetlanie błędów podczas inicjacji konta innego niż Admin", example_converters=CONVERTERS2)
-def test_account_user_init():
+def test_wyswietlanie_bledow_podczas_inicjacji_konta_innego_niz_admin():
     pass
 
 # scenarios('login.feature')

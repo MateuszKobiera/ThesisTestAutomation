@@ -4,7 +4,7 @@ from pytest_bdd import scenario, given, then, when
 
 @pytest.mark.order(14)
 @scenario("property_overview.feature", "Ustawienie poprawnych danych nieruchomości")
-def test_add_property():
+def test_ustawienie_poprawnych_danych_nieruchomosci():
     pass
 
 

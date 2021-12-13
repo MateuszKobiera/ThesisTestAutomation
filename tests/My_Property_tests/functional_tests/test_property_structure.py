@@ -6,19 +6,19 @@ from frontend.locators.Pages.my_property_locators import MyPropertyLocators
 
 @pytest.mark.order(15)
 @scenario("property_structure.feature", "Wyświetlanie okna dialogowego dla budynku")
-def test_dialog_opened():
+def test_wyswietlanie_okna_dialogowego_dla_budynku():
     pass
 
 
 @pytest.mark.order(16)
 @scenario("property_structure.feature", "Dodanie pierwszego budynku")
-def test_add_building():
+def test_dodanie_pierwszego_budynku():
     pass
 
 
 @pytest.mark.order(17)
 @scenario("property_structure.feature", "Dodanie piętra dla budynku")
-def test_add_floor():
+def test_dodanie_pietra_dla_budynku():
     pass
 
 

@@ -8,11 +8,10 @@ from utils.string_editor import create_random_string
 
 
 @pytest.mark.order(18)
-def test_add_datapoints(asset_templates_page):
+def test_dodanie_wszystkich_datapointow(asset_templates_page):
     """ Test dodający wszystkie standardowe datapointy
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
-        - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
         1. Kliknij przycisk 'Add datapoint'
@@ -87,11 +86,10 @@ def test_add_datapoints(asset_templates_page):
 
 
 @pytest.mark.order(19)
-def test_edit_datapoints(asset_templates_page):
-    """ Test edytujące wszystkie dostępne datapointy
+def test_edycja_wszystkich_datapointow(asset_templates_page):
+    """ Test edytujący wszystkie dostępne datapointy
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
-        - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
         1. Przejdź do zakładki 'Points'
@@ -139,18 +137,17 @@ def test_edit_datapoints(asset_templates_page):
         
 
 @pytest.mark.order(20)
-def test_add_properties(asset_templates_page):
+def test_dodanie_wszystkich_properties(asset_templates_page):
     """ Test do dodania wszystkich standardowych properties
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
-        - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
         1. Kliknij przycisk 'Add property'
-        2. Wybierz każdy standardowy datapoint, poddaj edycji i zapisz
+        2. Wybierz każdy standardowe standardowe property, poddaj edycji i zapisz
     OCZEKIWANY REZULTAT:
-        1. Okno dialogowe dla dodania datapointu zostało wyświetlone
-        2. Dodano wszystkie standardowe datapointy
+        1. Okno dialogowe dla dodania property zostało wyświetlone
+        2. Dodano wszystkie standardowe properties
     """
     # Preconditions
     assert asset_templates_page.url == asset_templates_page.driver.current_url
@@ -220,16 +217,17 @@ def test_add_properties(asset_templates_page):
 
 
 @pytest.mark.order(21)
-def test_edit_properties(asset_templates_page):
-    """
+def test_edycja_wszystkich_properties(asset_templates_page):
+    """ Test edytujący wszystkie standardowe properties
     WARUNKI WSTĘPNE:
         - Jestem na stronie Asset templates
-        - Dodano Asset template
         - Jestem w trybie edycji Asset template'u"
     OPIS KROKU:
-        1.
+        1. Przejdź do zakładki 'Properties'
+        2. Kliknij edycję każdego properties, zmień nazwę, typ, dodaj tag i zapisz
     OCZEKIWANY REZULTAT:
-        1.
+        1. Lista properties jest wyświetlona
+        2. Każde property zostało poprawnie poddane edycji i zapisane
     """
     assert asset_templates_page.url == asset_templates_page.driver.current_url
     template_table = asset_templates_page.template_table(table_name='Central').get_table(
