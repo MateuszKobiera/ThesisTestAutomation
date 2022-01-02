@@ -26,7 +26,7 @@ class BaseModal(BasePage):
         """
         save_button = self.get_element((self.save_xpath, 'Button'))
         save_button.click()
-        save_button.wait_for_element_to_disappear(timeout=20)
+        save_button.wait_for_element_to_disappear(timeout=30)
 
     def cancel(self) -> None:
         """
