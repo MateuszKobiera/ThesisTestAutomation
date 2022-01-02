@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++)
+        filterItems[i].hidden = false;
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>Building Ecosystem tests</h1>
+    <p>Report generated on 13-Dec-2021 at 23:35:35 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "py": "1.10.0", "pytest": "6.2.5"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.22000-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"bdd": "4.1.0", "html": "3.1.1", "metadata": "1.11.0", "order": "1.0.0", "pycharm": "0.7.0", "pytest_check": "1.0.4"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.9.4</td></tr></table>
+    <h2>Summary</h2>
+    <p>1 tests ran in 290.44 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">1 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">tests/Asset_Template_tests/E2E_tests/test_create_asset_templates.py::test_stworz_asset_template_z_datapointami_i_properties</td>
+          <td class="col-duration">63.10</td>
+          <td class="col-links"><a class="url" href="test_stworz_asset_template_z_datapointami_i_properties" target="_blank">URL</a> </td></tr>
+        <tr class="collapsed">
+          <td class="extra" colspan="4">
+            <div><div class='image'><a target='_blank' href='screenshots/test_stworz_asset_template_z_datapointami_i_properties.png'><img src='screenshots/test_stworz_asset_template_z_datapointami_i_properties.png'></a></div></div>
+            <div class="log">asset_templates_page = &lt;frontend.objects.Pages.asset_templates_page.AssetTemplatesPage object at 0x00000231D705F0D0&gt;<br/><br/>    @pytest.mark.order(4)<br/>    def test_stworz_asset_template_z_datapointami_i_properties(asset_templates_page):<br/>        &quot;&quot;&quot; Testuje stworzenie asset template wraz z stworzeniem różnego typu datapointów i properties<br/>        WARUNKI WSTĘPNE:<br/>            - Użytkownik Admin jest zalogowany<br/>            - Budynek jest dodany<br/>        OPIS KROKU:<br/>            1. Przejdź do widżetu &#x27;Asset templates&#x27;<br/>            2. Dla zakładki &#x27;Sensors&#x27; dla tabeli &#x27;Sensors&#x27; kliknij przycisk &#x27;Add template&#x27;<br/>            3. Uzupełnij nazwę, typ, tag i ikonę wraz z tłem dla Assetu<br/>            4. Kliknij przycisk &#x27;Save&#x27;<br/>            5. Kliknij na ikonkę edycji przy nowo powstałym Assecie<br/>            6. Ustaw &#x27;Master/Slave support in a space&#x27; i kliknij ikonkę &#x27;Save&#x27;<br/>            7. Przejdź do zakładki &#x27;Points&#x27; i kliknij &#x27;Add datapoint&#x27;<br/>            8. Wybierz opcję &#x27;Custom&#x27; i dodaj nazwę, typ, format, jednostkę, wartość minimalną, maksymalną,<br/>                jednostkę wyświetlaną i tag<br/>            9. Kliknij przycisk &#x27;Save&#x27;<br/>            10. Powtórz kroki 7-9 dla kolejnych typów datapointów<br/>            11. Powtórz kroki 7-9 dla properties z zakładki &#x27;Properties&#x27;<br/>        OCZEKIWANY REZULTAT:<br/>            1. Strona &#x27;Asset templates&#x27; została wyświetlona<br/>            2. Okno dialogowe dla dodania assetu zostało wyświetlone<br/>            3. Wszystkie dane zostały poprawnie wprowadzone<br/>            4. Nowy Asset template został wyświetlony w tabeli &#x27;Sensors&#x27; z danymi dodanymi w oknie dialogowym<br/>            5. W zakładce &#x27;General&#x27; pojwiły się dane asset template&#x27;u z możliwością ich edycji (oprócz Quntity of instances)<br/>            6. Dane zostały zapisane<br/>            7. Okno dialogowe dla dodania Datapointów<br/>            8. Dane zostały poprawnie ustawione<br/>            9. Okno dialogowe zostało zamknięte a datapoint jest widoczny a zakładce &#x27;Points&#x27; z nazwą i typem,<br/>                możliwością edycji i usunięcia<br/>            10. Datapointy zostały dodane i są wyświetlane w zakładce &#x27;Points&#x27;<br/>            11. Properties zostały dodane i są wyświetlane w zakładce &#x27;Properties&#x27; z możliwością edycji i ich usunięcia<br/>                z nazwą i wartością początkową<br/>        &quot;&quot;&quot;<br/>        # step 1<br/>        asset_templates_page.open_tab(&#x27;Sensors&#x27;)<br/>    <br/>        # step 2<br/>        add_template_modal = asset_templates_page.click_add_button(&#x27;Sensors&#x27;)<br/>    <br/>        # step 3<br/>        template_name = f&#x27;{create_random_string(5)} {create_random_string(5)}&#x27;<br/>        template_type = &#x27;UV Sensor&#x27;<br/>        add_template_modal.set_template_name(template_name)<br/>        add_template_modal.set_template_type(template_type)<br/>        add_template_modal.tags.set_new_tag(&#x27;ABC&#x27;)<br/>        all_tags = add_template_modal.tags.get_tags()<br/>        add_template_modal.icons.set_icon(randint(1, 826))<br/>        color_set = (randint(0, 255), randint(0, 255), randint(0, 255))<br/>        add_template_modal.icons.set_background(color_type=&#x27;rgb&#x27;, color=color_set)<br/>        background_color = add_template_modal.icons.get_background_color()<br/>        assert color_set == background_color<br/>    <br/>        # step 4<br/>        add_template_modal.save()<br/>        template_table = asset_templates_page.template_table(table_name=&#x27;Sensors&#x27;).get_table(unique_column_name=&#x27;TEMPLATE NAME&#x27;)<br/>        assert template_table[template_name][&#x27;TEMPLATE NAME&#x27;] == template_name<br/>        assert template_table[template_name][&#x27;TYPE&#x27;] == template_type<br/>        assert template_table[template_name][&#x27;INSTANCES&#x27;] == &#x27;0&#x27;<br/>    <br/>        # step 5<br/>        asset_templates_page.template_table(&#x27;Sensors&#x27;).edit_row(unique_column_name=&#x27;TEMPLATE NAME&#x27;, row_name=template_name)<br/>    <br/>        # step 6<br/>        asset_templates_page.set_master_slave()<br/>        asset_templates_page.save()<br/>        assert asset_templates_page.template_tags.get_tags() == all_tags<br/>    <br/>        # step 7 &amp; 8 &amp; 9 &amp; 10<br/>        asset_templates_page.open_tab(&#x27;Points&#x27;)<br/>        data: dict = {}<br/>        for point_format in [&#x27;Float&#x27;, &#x27;Integer&#x27;, &#x27;Boolean&#x27;, &#x27;Enum&#x27;]:<br/>            data[point_format] = {&#x27;format&#x27;: point_format, &#x27;name&#x27;: f&#x27;{point_format}&#x27;,<br/>                                  &#x27;type&#x27;: &#x27;Command And Feedback&#x27;, &#x27;tag&#x27;: f&#x27;{create_random_string(5)}&#x27;}<br/>            datapoint_modal = asset_templates_page.click_add_datapoint()<br/>            # noinspection DuplicatedCode<br/>            datapoint_modal.click_custom_datapoint()<br/>            datapoint_modal.set_name(data[point_format][&#x27;name&#x27;])<br/>            datapoint_modal.set_type(data[point_format][&#x27;type&#x27;])<br/>            datapoint_modal.set_format(data[point_format][&#x27;format&#x27;])<br/>            if point_format == &#x27;Integer&#x27; or point_format == &#x27;Float&#x27;:<br/>                data[point_format][&#x27;unit&#x27;] = &#x27;Degrees - deg&#x27;<br/>                data[point_format][&#x27;display_unit&#x27;] = &#x27;Radians - rad&#x27;<br/>                data[point_format][&#x27;min_value&#x27;] = 0<br/>                data[point_format][&#x27;max_value&#x27;] = 100000<br/>                datapoint_modal.set_unit(data[point_format][&#x27;unit&#x27;])<br/>                datapoint_modal.set_min_value(data[point_format][&#x27;min_value&#x27;])<br/>                datapoint_modal.set_max_value(data[point_format][&#x27;max_value&#x27;])<br/>                datapoint_modal.set_display_unit(data[point_format][&#x27;display_unit&#x27;])<br/>            datapoint_modal.tags.set_new_tag(data[point_format][&#x27;tag&#x27;])<br/>            datapoint_modal.save()<br/>    <br/>        datapoints_table = asset_templates_page.points_properties_table.get_table(unique_column_name=&#x27;POINT&#x27;)<br/>        for point_format in [&#x27;Float&#x27;, &#x27;Integer&#x27;, &#x27;Boolean&#x27;, &#x27;Enum&#x27;]:<br/>&gt;           assert datapoints_table[point_format][&#x27;POINT&#x27;] == data[point_format][&#x27;format&#x27;]  # bug - there is possibility to click save enum without enumartion<br/><span class="error">E           KeyError: &#x27;Enum&#x27;</span><br/><br/>test_create_asset_templates.py:102: KeyError<br/> -------------------------------Captured log setup------------------------------- <br/>2021-12-13 23:30:47 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:47 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:47 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:30:47 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-13 23:30:47 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:47 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:47 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:47 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:30:47 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-13 23:30:48 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:48 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-13 23:30:48 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:48 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:30:48 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-13 23:30:48 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:48 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:48 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:48 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-13 23:30:48 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:30:48 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-13 23:30:48 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-13 23:30:48 -        MenuPage -  INFO - Trying to find element (&#x27;//*[@id=&quot;widget-carousel_mysite&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:30:48 -        MenuPage -  INFO - Waiting for element //*[@id=&quot;widget-carousel_mysite&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:50 -        MenuPage -  INFO - Element //*[@id=&quot;widget-carousel_mysite&quot;] found.&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;widget-carousel_mysite&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Element //*[@id=&quot;widget-carousel_mysite&quot;] found.&quot;
+2021-12-13 23:30:50 -        MenuPage -  INFO - Found element (&#x27;//*[@id=&quot;widget-carousel_mysite&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;widget-carousel_mysite&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Element //*[@id=&quot;widget-carousel_mysite&quot;] found.&quot;
+2021-12-13 23:30:50 -        MenuPage -  INFO - Trying to find element (&#x27;//*[@id=&quot;widget-carousel_myfunctions&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:30:50 -        MenuPage -  INFO - Waiting for element //*[@id=&quot;widget-carousel_myfunctions&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:50 -        MenuPage -  INFO - Element //*[@id=&quot;widget-carousel_myfunctions&quot;] found.&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;widget-carousel_myfunctions&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Element //*[@id=&quot;widget-carousel_myfunctions&quot;] found.&quot;
+2021-12-13 23:30:50 -        MenuPage -  INFO - Found element (&#x27;//*[@id=&quot;widget-carousel_myfunctions&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Trying to click element with xpath //*[@id=&quot;widget-carousel_myfunctions&quot;]&quot;
+2021-12-13 23:30:50 -     BaseElement -  INFO - Element with xpath //*[@id=&quot;widget-carousel_myfunctions&quot;] was clicked&quot;
+2021-12-13 23:30:50 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Central&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:30:50 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Central&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:30:52 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Central&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:30:52 -          Button -  INFO - Waiting for element //*[text()=&#x27;Central&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:53 -          Button -  INFO - Element //*[text()=&#x27;Central&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:30:53 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Central&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:30:53 -          Button -  INFO - Waiting for element //*[text()=&#x27;Central&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:30:53 -          Button -  INFO - Element //*[text()=&#x27;Central&#x27;]/ancestor::span//button found.&quot;<br/> -------------------------------Captured log call-------------------------------- <br/>2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//a[text()=&#x27;Sensors&#x27;]//ancestor::li&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Waiting for element //a[text()=&#x27;Sensors&#x27;]//ancestor::li with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Element //a[text()=&#x27;Sensors&#x27;]//ancestor::li found.&quot;
+2021-12-13 23:33:24 -     BaseElement -  INFO - Waiting for element //a[text()=&#x27;Sensors&#x27;]//ancestor::li with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:24 -     BaseElement -  INFO - Element //a[text()=&#x27;Sensors&#x27;]//ancestor::li found.&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Found element (&quot;//a[text()=&#x27;Sensors&#x27;]//ancestor::li&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:24 -     BaseElement -  INFO - Trying to click element with xpath //a[text()=&#x27;Sensors&#x27;]//ancestor::li&quot;
+2021-12-13 23:33:24 -     BaseElement -  INFO - Element with xpath //a[text()=&#x27;Sensors&#x27;]//ancestor::li was clicked&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 1s&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button was found.&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Trying to format the element (&quot;//*[text()=&#x27;{}&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;) with data (&#x27;Sensors&#x27;,)&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button found.&quot;
+2021-12-13 23:33:24 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:24 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button&quot;
+2021-12-13 23:33:25 -          Button -  INFO - Element with xpath //*[text()=&#x27;Sensors&#x27;]/ancestor::span//button was clicked&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Trying to find element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:25 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:25 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Found element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:25 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:25 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Found element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:25 - AddAssetTemplateModal -  INFO - Found element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:25 -           Input -  INFO - Trying to get base element with xpath //*[@id=&#x27;name&#x27;]&quot;
+2021-12-13 23:33:25 -     BaseElement -  INFO - Waiting for element //*[@id=&#x27;name&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:25 -     BaseElement -  INFO - Element //*[@id=&#x27;name&#x27;]//input found.&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;blockType&#x27;]&quot;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Waiting for element //*[@id=&#x27;blockType&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Element //*[@id=&#x27;blockType&#x27;] found.&quot;
+2021-12-13 23:33:26 -        Dropdown -  INFO - Waiting for element //*[@id=&#x27;blockType&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:26 -        Dropdown -  INFO - Element //*[@id=&#x27;blockType&#x27;] found.&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Found element (&quot;//*[@id=&#x27;blockType&#x27;]&quot;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:26 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&#x27;blockType&#x27;]&quot;
+2021-12-13 23:33:26 -        Dropdown -  INFO - Element with xpath //*[@id=&#x27;blockType&#x27;] was clicked&quot;
+2021-12-13 23:33:26 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&#x27;blockType&#x27;]&quot;
+2021-12-13 23:33:26 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;UV Sensor&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:26 -     BaseElement -  INFO - Element //span[text()=&quot;UV Sensor&quot;]/.. found.&quot;
+2021-12-13 23:33:26 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;UV Sensor&quot;]/..&quot;
+2021-12-13 23:33:26 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;UV Sensor&quot;]/.. was clicked&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Trying to find component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Found component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8] found.&quot;
+2021-12-13 23:33:26 -           Input -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:26 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8] found.&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:26 -           Input -  INFO - Trying to get base element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;
+2021-12-13 23:33:26 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:26 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//input found.&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button found.&quot;
+2021-12-13 23:33:26 -          Button -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:26 -          Button -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button found.&quot;
+2021-12-13 23:33:26 -            Tags -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:26 -          Button -  INFO - Trying to click element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button&quot;
+2021-12-13 23:33:26 -          Button -  INFO - Element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]//button was clicked&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Trying to find component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Found component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[8]&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:26 - AddAssetTemplateModal -  INFO - Trying to find component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]&quot;, &#x27;Icons&#x27;)&quot;
+2021-12-13 23:33:27 - AddAssetTemplateModal -  INFO - Found component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]&quot;, &#x27;Icons&#x27;)&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;] found.&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;] found.&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Trying to click element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;] was clicked&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div found.&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div found.&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div found.&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162] found.&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162] found.&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Trying to click element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162]&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick or import a symbol&#x27;]/div/div/div[2]/div[162] was clicked&quot;
+2021-12-13 23:33:27 - AddAssetTemplateModal -  INFO - Trying to find component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]&quot;, &#x27;Icons&#x27;)&quot;
+2021-12-13 23:33:27 - AddAssetTemplateModal -  INFO - Found component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]&quot;, &#x27;Icons&#x27;)&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;] found.&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;] found.&quot;
+2021-12-13 23:33:27 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:27 -          Button -  INFO - Trying to click element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]&quot;
+2021-12-13 23:33:28 -          Button -  INFO - Element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;] was clicked&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2] found.&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2] found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]/div[2] found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 1s&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input was found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Trying to get base element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;r&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:28 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:28 -           Input -  INFO - Trying to get base element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:28 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;g&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:29 -           Input -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:29 -           Input -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:29 -           Input -  INFO - Trying to get base element with xpath (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input&quot;
+2021-12-13 23:33:29 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:29 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]//div[@title=&#x27;Pick a background color&#x27;]//label[text()=&#x27;b&#x27;]/preceding-sibling::input found.&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Trying to find element (&#x27;//html&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Waiting for element //html with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Element //html found.&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Waiting for element //html with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Element //html found.&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Found element (&#x27;//html&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Trying to click element with xpath //html&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Element with xpath //html was clicked&quot;
+2021-12-13 23:33:29 - AddAssetTemplateModal -  INFO - Trying to find component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]&quot;, &#x27;Icons&#x27;)&quot;
+2021-12-13 23:33:29 - AddAssetTemplateModal -  INFO - Found component (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]&quot;, &#x27;Icons&#x27;)&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Trying to find element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]/div/div[1]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]/div/div[1] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]/div/div[1] found.&quot;
+2021-12-13 23:33:29 -     BaseElement -  INFO - Waiting for element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]/div/div[1] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:29 -     BaseElement -  INFO - Element (//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]/div/div[1] found.&quot;
+2021-12-13 23:33:29 -           Icons -  INFO - Found element (&quot;(//div[@class=&#x27;ReactModalPortal&#x27;]//div[contains(@class,&#x27;grid-cell&#x27;)])[9]/div/div[1]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:29 - AddAssetTemplateModal -  INFO - Trying to find element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:29 - AddAssetTemplateModal -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:29 - AddAssetTemplateModal -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:33:29 - AddAssetTemplateModal -  INFO - Found element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Trying to click element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] was clicked&quot;
+2021-12-13 23:33:29 -          Button -  INFO - Waiting for element to disappear (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1 and timeout 20&quot;
+2021-12-13 23:33:33 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] disappeared.&quot;
+2021-12-13 23:33:33 - AssetTemplatesPage -  INFO - Trying to format the element (&quot;//*[text()=&#x27;{}&#x27;]/ancestor::span//table&quot;, &#x27;Table&#x27;) with data (&#x27;Sensors&#x27;,)&quot;
+2021-12-13 23:33:33 - AssetTemplatesPage -  INFO - Trying to find component (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//table&quot;, &#x27;Table&#x27;)&quot;
+2021-12-13 23:33:33 - AssetTemplatesPage -  INFO - Found component (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//table&quot;, &#x27;Table&#x27;)&quot;
+2021-12-13 23:33:35 - AssetTemplatesPage -  INFO - Trying to format the element (&quot;//*[text()=&#x27;{}&#x27;]/ancestor::span//table&quot;, &#x27;Table&#x27;) with data (&#x27;Sensors&#x27;,)&quot;
+2021-12-13 23:33:35 - AssetTemplatesPage -  INFO - Trying to find component (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//table&quot;, &#x27;Table&#x27;)&quot;
+2021-12-13 23:33:35 - AssetTemplatesPage -  INFO - Found component (&quot;//*[text()=&#x27;Sensors&#x27;]/ancestor::span//table&quot;, &#x27;Table&#x27;)&quot;
+2021-12-13 23:33:37 -           Table -  INFO - Trying to find element (&#x27;//*[text()=\&#x27;Sensors\&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:37 -           Table -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:37 -           Table -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)] found.&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Waiting for element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Element //*[text()=&#x27;Sensors&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)] found.&quot;
+2021-12-13 23:33:37 -           Table -  INFO - Found element (&#x27;//*[text()=\&#x27;Sensors\&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Sensors&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)]&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Element with xpath //*[text()=&#x27;Sensors&#x27;]/ancestor::span//table/tbody/tr[2]/td//i[contains(@class,&quot;edit&quot;)] was clicked&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[@id=&#x27;supportMasterSlave&#x27;]&quot;, &#x27;Switcher&#x27;)&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Waiting for element //*[@id=&#x27;supportMasterSlave&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Element //*[@id=&#x27;supportMasterSlave&#x27;] found.&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Waiting for element //*[@id=&#x27;supportMasterSlave&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Element //*[@id=&#x27;supportMasterSlave&#x27;] found.&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Found element (&quot;//*[@id=&#x27;supportMasterSlave&#x27;]&quot;, &#x27;Switcher&#x27;)&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Trying to get base element with xpath //*[@id=&#x27;supportMasterSlave&#x27;]&quot;
+2021-12-13 23:33:37 -     BaseElement -  INFO - Waiting for element //*[@id=&#x27;supportMasterSlave&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:37 -     BaseElement -  INFO - Element //*[@id=&#x27;supportMasterSlave&#x27;] found.&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[@id=&#x27;supportMasterSlave&#x27;]&quot;, &#x27;Switcher&#x27;)&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Waiting for element //*[@id=&#x27;supportMasterSlave&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Element //*[@id=&#x27;supportMasterSlave&#x27;] found.&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Waiting for element //*[@id=&#x27;supportMasterSlave&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Element //*[@id=&#x27;supportMasterSlave&#x27;] found.&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Found element (&quot;//*[@id=&#x27;supportMasterSlave&#x27;]&quot;, &#x27;Switcher&#x27;)&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Trying to click element with xpath //*[@id=&#x27;supportMasterSlave&#x27;]&quot;
+2021-12-13 23:33:37 -        Switcher -  INFO - Element with xpath //*[@id=&#x27;supportMasterSlave&#x27;] was clicked&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//button[contains(@class, &#x27;save-button&#x27;)]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Waiting for element //button[contains(@class, &#x27;save-button&#x27;)] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Element //button[contains(@class, &#x27;save-button&#x27;)] found.&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Waiting for element //button[contains(@class, &#x27;save-button&#x27;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Element //button[contains(@class, &#x27;save-button&#x27;)] found.&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Found element (&quot;//button[contains(@class, &#x27;save-button&#x27;)]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Trying to click element with xpath //button[contains(@class, &#x27;save-button&#x27;)]&quot;
+2021-12-13 23:33:37 -          Button -  INFO - Element with xpath //button[contains(@class, &#x27;save-button&#x27;)] was clicked&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//div[contains(@class,&#x27;LoadingIndicator&#x27;)]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:37 - AssetTemplatesPage -  INFO - Waiting for element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:38 - AssetTemplatesPage -  INFO - Element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] found.&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Waiting for element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] found.&quot;
+2021-12-13 23:33:38 - AssetTemplatesPage -  INFO - Found element (&quot;//div[contains(@class,&#x27;LoadingIndicator&#x27;)]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Waiting for element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] with poll frequency 0.5s and timeout 5s&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] found.&quot;
+2021-12-13 23:33:38 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//div[contains(@class,&#x27;LoadingIndicator&#x27;)]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:38 - AssetTemplatesPage -  INFO - Waiting for element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:38 - AssetTemplatesPage -  INFO - Element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] found.&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Waiting for element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] found.&quot;
+2021-12-13 23:33:38 - AssetTemplatesPage -  INFO - Found element (&quot;//div[contains(@class,&#x27;LoadingIndicator&#x27;)]&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:38 -     BaseElement -  INFO - Waiting for element to disappear //div[contains(@class,&#x27;LoadingIndicator&#x27;)] with poll frequency 0.5 and timeout 15&quot;
+2021-12-13 23:33:41 -     BaseElement -  INFO - Element //div[contains(@class,&#x27;LoadingIndicator&#x27;)] disappeared.&quot;
+2021-12-13 23:33:41 - AssetTemplatesPage -  INFO - Trying to find component (&quot;(//div[contains(@class,&#x27;TabControl__activeContent&#x27;)])[last()]/div/div[last()]&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:41 - AssetTemplatesPage -  INFO - Found component (&quot;(//div[contains(@class,&#x27;TabControl__activeContent&#x27;)])[last()]/div/div[last()]&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:41 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//a[text()=&#x27;Points&#x27;]//ancestor::li&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:41 - AssetTemplatesPage -  INFO - Waiting for element //a[text()=&#x27;Points&#x27;]//ancestor::li with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:41 - AssetTemplatesPage -  INFO - Element //a[text()=&#x27;Points&#x27;]//ancestor::li found.&quot;
+2021-12-13 23:33:41 -     BaseElement -  INFO - Waiting for element //a[text()=&#x27;Points&#x27;]//ancestor::li with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:41 -     BaseElement -  INFO - Element //a[text()=&#x27;Points&#x27;]//ancestor::li found.&quot;
+2021-12-13 23:33:41 - AssetTemplatesPage -  INFO - Found element (&quot;//a[text()=&#x27;Points&#x27;]//ancestor::li&quot;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:41 -     BaseElement -  INFO - Trying to click element with xpath //a[text()=&#x27;Points&#x27;]//ancestor::li&quot;
+2021-12-13 23:33:42 -     BaseElement -  INFO - Element with xpath //a[text()=&#x27;Points&#x27;]//ancestor::li was clicked&quot;
+2021-12-13 23:33:42 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:42 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:42 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:33:42 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button was clicked&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:42 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:42 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:42 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:42 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Custom&#x27;]/..&quot;
+2021-12-13 23:33:42 -          Button -  INFO - Element with xpath //*[text()=&#x27;Custom&#x27;]/.. was clicked&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:42 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:42 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:42 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:42 -           Input -  INFO - Trying to get base element with xpath //*[@id=&#x27;name&#x27;]&quot;
+2021-12-13 23:33:42 -     BaseElement -  INFO - Waiting for element //*[@id=&#x27;name&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:43 -     BaseElement -  INFO - Element //*[@id=&#x27;name&#x27;]//input found.&quot;
+2021-12-13 23:33:43 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:43 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:43 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:33:43 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:43 -        Dropdown -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:33:43 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:43 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:33:43 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;direction&quot;] was clicked&quot;
+2021-12-13 23:33:43 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:33:43 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Command And Feedback&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:43 -     BaseElement -  INFO - Element //span[text()=&quot;Command And Feedback&quot;]/.. found.&quot;
+2021-12-13 23:33:43 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Command And Feedback&quot;]/..&quot;
+2021-12-13 23:33:43 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Command And Feedback&quot;]/.. was clicked&quot;
+2021-12-13 23:33:43 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:43 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:44 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:33:44 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;format&quot;] was clicked&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:33:44 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Float&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:44 -     BaseElement -  INFO - Element //span[text()=&quot;Float&quot;]/.. found.&quot;
+2021-12-13 23:33:44 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Float&quot;]/..&quot;
+2021-12-13 23:33:44 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Float&quot;]/.. was clicked&quot;
+2021-12-13 23:33:44 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:44 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:44 - AddDatapointPropertyModal -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] found.&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] found.&quot;
+2021-12-13 23:33:44 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Trying to click element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] was clicked&quot;
+2021-12-13 23:33:44 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:44 -     BaseElement -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:44 -     BaseElement -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//input found.&quot;
+2021-12-13 23:33:45 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] found.&quot;
+2021-12-13 23:33:45 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] found.&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Trying to click element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)]&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] was clicked&quot;
+2021-12-13 23:33:45 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Degrees - deg&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Element //span[text()=&quot;Degrees - deg&quot;]/.. found.&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Degrees - deg&quot;]/..&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Degrees - deg&quot;]/.. was clicked&quot;
+2021-12-13 23:33:45 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;min&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:45 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;min&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:45 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;min&quot;] found.&quot;
+2021-12-13 23:33:45 -           Input -  INFO - Waiting for element //*[@id=&quot;min&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:45 -           Input -  INFO - Element //*[@id=&quot;min&quot;] found.&quot;
+2021-12-13 23:33:45 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;min&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:45 -           Input -  INFO - Trying to get base element with xpath //*[@id=&quot;min&quot;]&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;min&quot;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:45 -     BaseElement -  INFO - Element //*[@id=&quot;min&quot;]//input found.&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;max&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;max&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;max&quot;] found.&quot;
+2021-12-13 23:33:46 -           Input -  INFO - Waiting for element //*[@id=&quot;max&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:46 -           Input -  INFO - Element //*[@id=&quot;max&quot;] found.&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;max&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:46 -           Input -  INFO - Trying to get base element with xpath //*[@id=&quot;max&quot;]&quot;
+2021-12-13 23:33:46 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;max&quot;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:46 -     BaseElement -  INFO - Element //*[@id=&quot;max&quot;]//input found.&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;displayUnitId&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;displayUnitId&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;displayUnitId&quot;] found.&quot;
+2021-12-13 23:33:46 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;displayUnitId&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:46 -        Dropdown -  INFO - Element //*[@id=&quot;displayUnitId&quot;] found.&quot;
+2021-12-13 23:33:46 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;displayUnitId&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:46 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;displayUnitId&quot;]&quot;
+2021-12-13 23:33:46 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;displayUnitId&quot;] was clicked&quot;
+2021-12-13 23:33:46 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;displayUnitId&quot;]&quot;
+2021-12-13 23:33:46 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Radians - rad&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:46 -     BaseElement -  INFO - Element //span[text()=&quot;Radians - rad&quot;]/.. found.&quot;
+2021-12-13 23:33:47 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Radians - rad&quot;]/..&quot;
+2021-12-13 23:33:47 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Radians - rad&quot;]/.. was clicked&quot;
+2021-12-13 23:33:47 - AddDatapointPropertyModal -  INFO - Trying to find component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:47 - AddDatapointPropertyModal -  INFO - Found component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:33:47 -           Input -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:47 -           Input -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:47 -           Input -  INFO - Trying to get base element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;
+2021-12-13 23:33:47 -     BaseElement -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:47 -     BaseElement -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input found.&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:33:47 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Trying to click element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button was clicked&quot;
+2021-12-13 23:33:47 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:47 - AddDatapointPropertyModal -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:47 - AddDatapointPropertyModal -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:33:47 - AddDatapointPropertyModal -  INFO - Found element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:47 -          Button -  INFO - Trying to click element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&quot;
+2021-12-13 23:33:48 -          Button -  INFO - Element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] was clicked&quot;
+2021-12-13 23:33:48 -          Button -  INFO - Waiting for element to disappear (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1 and timeout 20&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] disappeared.&quot;
+2021-12-13 23:33:53 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:53 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:53 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:33:53 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button was clicked&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:53 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:53 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:33:53 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:53 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Custom&#x27;]/..&quot;
+2021-12-13 23:33:53 -          Button -  INFO - Element with xpath //*[text()=&#x27;Custom&#x27;]/.. was clicked&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:53 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:53 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:33:53 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:53 -           Input -  INFO - Trying to get base element with xpath //*[@id=&#x27;name&#x27;]&quot;
+2021-12-13 23:33:53 -     BaseElement -  INFO - Waiting for element //*[@id=&#x27;name&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:53 -     BaseElement -  INFO - Element //*[@id=&#x27;name&#x27;]//input found.&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:33:54 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:54 -        Dropdown -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:54 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:33:54 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;direction&quot;] was clicked&quot;
+2021-12-13 23:33:54 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:33:54 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Command And Feedback&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:54 -     BaseElement -  INFO - Element //span[text()=&quot;Command And Feedback&quot;]/.. found.&quot;
+2021-12-13 23:33:54 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Command And Feedback&quot;]/..&quot;
+2021-12-13 23:33:54 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Command And Feedback&quot;]/.. was clicked&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:54 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:33:54 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:33:55 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;format&quot;] was clicked&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:33:55 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Integer&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:55 -     BaseElement -  INFO - Element //span[text()=&quot;Integer&quot;]/.. found.&quot;
+2021-12-13 23:33:55 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Integer&quot;]/..&quot;
+2021-12-13 23:33:55 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Integer&quot;]/.. was clicked&quot;
+2021-12-13 23:33:55 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:55 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:55 - AddDatapointPropertyModal -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] found.&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] found.&quot;
+2021-12-13 23:33:55 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Trying to click element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;] was clicked&quot;
+2021-12-13 23:33:55 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:55 -     BaseElement -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:55 -     BaseElement -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//input found.&quot;
+2021-12-13 23:33:56 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] found.&quot;
+2021-12-13 23:33:56 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Waiting for element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Element //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] found.&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Trying to click element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)]&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]//div[contains(@class,&quot;undefined&quot;)] was clicked&quot;
+2021-12-13 23:33:56 -        Dropdown -  INFO - Trying to get base element with xpath //*[@data-testid=&quot;UnitPicker.UnitsDropdown&quot;]&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Degrees - deg&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Element //span[text()=&quot;Degrees - deg&quot;]/.. found.&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Degrees - deg&quot;]/..&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Degrees - deg&quot;]/.. was clicked&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;min&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;min&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;min&quot;] found.&quot;
+2021-12-13 23:33:56 -           Input -  INFO - Waiting for element //*[@id=&quot;min&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:56 -           Input -  INFO - Element //*[@id=&quot;min&quot;] found.&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;min&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:56 -           Input -  INFO - Trying to get base element with xpath //*[@id=&quot;min&quot;]&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;min&quot;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:56 -     BaseElement -  INFO - Element //*[@id=&quot;min&quot;]//input found.&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;max&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;max&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;max&quot;] found.&quot;
+2021-12-13 23:33:56 -           Input -  INFO - Waiting for element //*[@id=&quot;max&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:56 -           Input -  INFO - Element //*[@id=&quot;max&quot;] found.&quot;
+2021-12-13 23:33:56 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;max&quot;]&#x27;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:56 -           Input -  INFO - Trying to get base element with xpath //*[@id=&quot;max&quot;]&quot;
+2021-12-13 23:33:57 -     BaseElement -  INFO - Waiting for element //*[@id=&quot;max&quot;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:57 -     BaseElement -  INFO - Element //*[@id=&quot;max&quot;]//input found.&quot;
+2021-12-13 23:33:57 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;displayUnitId&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:57 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;displayUnitId&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:57 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;displayUnitId&quot;] found.&quot;
+2021-12-13 23:33:57 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;displayUnitId&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:57 -        Dropdown -  INFO - Element //*[@id=&quot;displayUnitId&quot;] found.&quot;
+2021-12-13 23:33:57 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;displayUnitId&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:33:57 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;displayUnitId&quot;]&quot;
+2021-12-13 23:33:57 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;displayUnitId&quot;] was clicked&quot;
+2021-12-13 23:33:57 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;displayUnitId&quot;]&quot;
+2021-12-13 23:33:57 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Radians - rad&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:58 -     BaseElement -  INFO - Element //span[text()=&quot;Radians - rad&quot;]/.. found.&quot;
+2021-12-13 23:33:58 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Radians - rad&quot;]/..&quot;
+2021-12-13 23:33:58 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Radians - rad&quot;]/.. was clicked&quot;
+2021-12-13 23:33:58 - AddDatapointPropertyModal -  INFO - Trying to find component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:58 - AddDatapointPropertyModal -  INFO - Found component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:33:58 -           Input -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:58 -           Input -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:33:58 -           Input -  INFO - Trying to get base element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;
+2021-12-13 23:33:58 -     BaseElement -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:58 -     BaseElement -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input found.&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:33:58 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Trying to click element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button was clicked&quot;
+2021-12-13 23:33:58 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:58 - AddDatapointPropertyModal -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:33:58 - AddDatapointPropertyModal -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:33:58 - AddDatapointPropertyModal -  INFO - Found element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:33:58 -          Button -  INFO - Trying to click element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&quot;
+2021-12-13 23:33:59 -          Button -  INFO - Element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] was clicked&quot;
+2021-12-13 23:33:59 -          Button -  INFO - Waiting for element to disappear (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1 and timeout 20&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] disappeared.&quot;
+2021-12-13 23:34:02 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:02 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:02 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:34:02 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button was clicked&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:34:02 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:02 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:34:02 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:02 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:34:02 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:02 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Custom&#x27;]/..&quot;
+2021-12-13 23:34:03 -          Button -  INFO - Element with xpath //*[text()=&#x27;Custom&#x27;]/.. was clicked&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:34:03 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:03 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:03 -           Input -  INFO - Trying to get base element with xpath //*[@id=&#x27;name&#x27;]&quot;
+2021-12-13 23:34:03 -     BaseElement -  INFO - Waiting for element //*[@id=&#x27;name&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:03 -     BaseElement -  INFO - Element //*[@id=&#x27;name&#x27;]//input found.&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:34:03 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:03 -        Dropdown -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:34:03 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:03 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;direction&quot;] was clicked&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Command And Feedback&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Element //span[text()=&quot;Command And Feedback&quot;]/.. found.&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Command And Feedback&quot;]/..&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Command And Feedback&quot;]/.. was clicked&quot;
+2021-12-13 23:34:04 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:04 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:04 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:34:04 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;format&quot;] was clicked&quot;
+2021-12-13 23:34:04 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Boolean&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Element //span[text()=&quot;Boolean&quot;]/.. found.&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Boolean&quot;]/..&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Boolean&quot;]/.. was clicked&quot;
+2021-12-13 23:34:04 - AddDatapointPropertyModal -  INFO - Trying to find component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:34:04 - AddDatapointPropertyModal -  INFO - Found component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:34:04 -           Input -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:04 -           Input -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:04 -           Input -  INFO - Trying to get base element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:04 -     BaseElement -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input found.&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:04 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:34:04 -          Button -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:34:05 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Trying to click element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button was clicked&quot;
+2021-12-13 23:34:05 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:05 - AddDatapointPropertyModal -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:05 - AddDatapointPropertyModal -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:34:05 - AddDatapointPropertyModal -  INFO - Found element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Trying to click element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] was clicked&quot;
+2021-12-13 23:34:05 -          Button -  INFO - Waiting for element to disappear (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1 and timeout 20&quot;
+2021-12-13 23:34:09 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] disappeared.&quot;
+2021-12-13 23:34:09 - AssetTemplatesPage -  INFO - Trying to find element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:09 - AssetTemplatesPage -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:09 - AssetTemplatesPage -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:34:09 -          Button -  INFO - Waiting for element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:09 -          Button -  INFO - Element //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button found.&quot;
+2021-12-13 23:34:09 - AssetTemplatesPage -  INFO - Found element (&quot;//*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:09 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button&quot;
+2021-12-13 23:34:10 -          Button -  INFO - Element with xpath //*[text()=&#x27;Add datapoint&#x27;]//ancestor::button was clicked&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:34:10 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:10 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//div[@class = &quot;ABB_CommonUX_Dialog__content&quot;]&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-13 23:34:10 -     BaseElement -  INFO - Waiting for element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:10 -     BaseElement -  INFO - Element //div[@class = &quot;ABB_CommonUX_Dialog__content&quot;] found.&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:34:10 -          Button -  INFO - Waiting for element //*[text()=&#x27;Custom&#x27;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:10 -          Button -  INFO - Element //*[text()=&#x27;Custom&#x27;]/.. found.&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[text()=&#x27;Custom&#x27;]/..&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:10 -          Button -  INFO - Trying to click element with xpath //*[text()=&#x27;Custom&#x27;]/..&quot;
+2021-12-13 23:34:10 -          Button -  INFO - Element with xpath //*[text()=&#x27;Custom&#x27;]/.. was clicked&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Trying to find element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:34:10 -           Input -  INFO - Waiting for element //*[@id=&#x27;name&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:10 -           Input -  INFO - Element //*[@id=&#x27;name&#x27;] found.&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Found element (&quot;//*[@id=&#x27;name&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:10 -           Input -  INFO - Trying to get base element with xpath //*[@id=&#x27;name&#x27;]&quot;
+2021-12-13 23:34:10 -     BaseElement -  INFO - Waiting for element //*[@id=&#x27;name&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:10 -     BaseElement -  INFO - Element //*[@id=&#x27;name&#x27;]//input found.&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:10 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:34:10 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;direction&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Element //*[@id=&quot;direction&quot;] found.&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;direction&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;direction&quot;] was clicked&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;direction&quot;]&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Command And Feedback&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Element //span[text()=&quot;Command And Feedback&quot;]/.. found.&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Command And Feedback&quot;]/..&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Command And Feedback&quot;]/.. was clicked&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Waiting for element //*[@id=&quot;format&quot;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Element //*[@id=&quot;format&quot;] found.&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Found element (&#x27;//*[@id=&quot;format&quot;]&#x27;, &#x27;Dropdown&#x27;)&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Trying to click element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Element with xpath //*[@id=&quot;format&quot;] was clicked&quot;
+2021-12-13 23:34:11 -        Dropdown -  INFO - Trying to get base element with xpath //*[@id=&quot;format&quot;]&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Waiting for element //span[text()=&quot;Enum&quot;]/.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Element //span[text()=&quot;Enum&quot;]/.. found.&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Trying to click element with xpath //span[text()=&quot;Enum&quot;]/..&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Element with xpath //span[text()=&quot;Enum&quot;]/.. was clicked&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Trying to find component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:34:11 - AddDatapointPropertyModal -  INFO - Found component (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Tags&#x27;)&quot;
+2021-12-13 23:34:11 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:11 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:11 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:34:11 -           Input -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:11 -           Input -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../.. found.&quot;
+2021-12-13 23:34:11 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;, &#x27;Input&#x27;)&quot;
+2021-12-13 23:34:11 -           Input -  INFO - Trying to get base element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:11 -     BaseElement -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//input found.&quot;
+2021-12-13 23:34:12 -            Tags -  INFO - Trying to find element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:12 -            Tags -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:12 -            Tags -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Waiting for element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Element //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button found.&quot;
+2021-12-13 23:34:12 -            Tags -  INFO - Found element (&quot;//div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Trying to click element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Element with xpath //div[@class=&#x27;ReactModalPortal&#x27;]//*[text()=&#x27;Search tags&#x27;]/../..//button was clicked&quot;
+2021-12-13 23:34:12 - AddDatapointPropertyModal -  INFO - Trying to find element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:12 - AddDatapointPropertyModal -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-13 23:34:12 - AddDatapointPropertyModal -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Waiting for element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] found.&quot;
+2021-12-13 23:34:12 - AddDatapointPropertyModal -  INFO - Found element (&#x27;(//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&#x27;, &#x27;Button&#x27;)&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Trying to click element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()]&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Element with xpath (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] was clicked&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Waiting for element to disappear (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] with poll frequency 0.1 and timeout 20&quot;
+2021-12-13 23:34:12 -          Button -  INFO - Element (//div[@class = &quot;ReactModalPortal&quot;]//div[@data-testid = &quot;DialogContainer&quot;]//button[contains(@class, &quot;primaryblue&quot;)])[last()] disappeared.&quot;
+2021-12-13 23:34:12 - AssetTemplatesPage -  INFO - Trying to find component (&quot;//table[contains(@class,&#x27;small&#x27;)]&quot;, &#x27;Table&#x27;)&quot;
+2021-12-13 23:34:12 - AssetTemplatesPage -  INFO - Found component (&quot;//table[contains(@class,&#x27;small&#x27;)]&quot;, &#x27;Table&#x27;)&quot;<br/> -----------------------------Captured log teardown------------------------------ <br/>2021-12-13 23:35:32 -     Test Logger -  INFO - Screenshot saved: D:\ThesisTestAutomation\reports\2021-12-13-23-30-44\screenshots\test_stworz_asset_template_z_datapointami_i_properties.png&quot;<br/></div></td></tr></tbody></table></body></html>
