@@ -11,22 +11,22 @@ class BaseModal(BasePage):
         super().__init__(driver)
         self.driver = driver
         self.xpath = '//div[@class = "ReactModalPortal"]'
-        self.save_xpath = self.xpath + \
-            '//div[@data-testid = "DialogContainer"]//button[contains(@class, "primaryblue")]'
-        self.cancel_xpath = self.xpath + \
-            '//div[@data-testid = "DialogContainer"]//button[contains(@class, "discreetblack")]'
+        self.save_xpath = \
+            f'({self.xpath}//div[@data-testid = "DialogContainer"]//button[contains(@class, "primaryblue")])[last()]'
+        self.cancel_xpath = \
+            f'({self.xpath}//div[@data-testid = "DialogContainer"]//button[contains(@class, "discreetblack")])[last()]'
         self.x_close_button = "//div[@class='ReactModalPortal']//i[contains(@class, 'close_24')]"
         self.title = "//span[contains(@class, 'title')]"
-        self.wait_for_element(('//div[@class = "ABB_CommonUX_Dialog__content"]', 'Base'))
+        self.get_element(('//div[@class = "ABB_CommonUX_Dialog__content"]', 'Base')).wait_for_element()
 
     def save(self) -> None:
         """
         Kliknięcie przycisku 'save' lub 'accept'
         :return:
         """
-        save_button = (self.save_xpath, 'Button')
-        self.get_element(save_button).click()
-        self.wait_for_element_to_disappear(save_button)
+        save_button = self.get_element((self.save_xpath, 'Button'))
+        save_button.click()
+        save_button.wait_for_element_to_disappear(timeout=30)
 
     def cancel(self) -> None:
         """
@@ -40,7 +40,9 @@ class BaseModal(BasePage):
         Kliknięcie przycisku 'X' jako zamknięcie okna dialogowego i anulowanie operacji
         :return:
         """
-        self.get_element((self.x_close_button, 'Button')).click()
+        close_button = self.get_element((self.x_close_button, 'Button'))
+        close_button.click()
+        close_button.wait_for_element_to_disappear()
 
     def get_title(self) -> str:
         """

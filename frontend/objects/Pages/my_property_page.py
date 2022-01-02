@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.my_property_locators import MyPropertyLocators
+from frontend.locators.Pages.my_property_locators import MyPropertyLocators
 from frontend.objects.Modals.my_property_add_to_structure import AddToStructureModal
 from frontend.objects.Pages.base_page import BasePage
 from frontend.components.table import Table
@@ -14,7 +14,7 @@ class MyPropertyPage(BasePage):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/app/mysite'
-        self.wait_for_element(MyPropertyLocators.property_name_input)
+        self.get_element(MyPropertyLocators.property_name_input).wait_for_element()
 
     def set_property_name(self, property_name: str) -> None:
         """
@@ -264,7 +264,7 @@ class MyPropertyPage(BasePage):
         :return:
         """
         self.get_element(MyPropertyLocators.save_button).click()
-        self.wait_for_element(MyPropertyLocators.property_name_input, timeout=10)
+        self.get_element(MyPropertyLocators.property_name_input).wait_for_element(timeout=10)
 
     def cancel(self):
         """
@@ -301,5 +301,5 @@ class MyPropertyPage(BasePage):
         self.get_element(MyPropertyLocators.add_structure_button).click()
         return AddToStructureModal(self.driver)
 
-    def modal_is_displayed(self):
-        self.get_element(MyPropertyLocators)
+    # def modal_is_displayed(self):
+    #     self.get_element(MyPropertyLocators) TODO ???

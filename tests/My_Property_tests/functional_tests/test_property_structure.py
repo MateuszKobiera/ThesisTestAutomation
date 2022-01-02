@@ -1,27 +1,31 @@
+import pytest
 from pytest_bdd import scenario, given, then, when
 
-from frontend.Locators.Pages.my_property_locators import MyPropertyLocators
+from frontend.locators.Pages.my_property_locators import MyPropertyLocators
 
 
+@pytest.mark.order(15)
 @scenario("property_structure.feature", "Wyświetlanie okna dialogowego dla budynku")
-def test_dialog_opened():
+def test_wyswietlanie_okna_dialogowego_dla_budynku():
     pass
 
 
+@pytest.mark.order(16)
 @scenario("property_structure.feature", "Dodanie pierwszego budynku")
-def test_add_building():
+def test_dodanie_pierwszego_budynku():
     pass
 
 
+@pytest.mark.order(17)
 @scenario("property_structure.feature", "Dodanie piętra dla budynku")
-def test_add_floor():
+def test_dodanie_pietra_dla_budynku():
     pass
 
 
 @given('Jestem na stronie My property - Structure')
 def step_impl(log_in, my_property_page):
     my_property_page.open_tab('Structure')
-    my_property_page.wait_for_element(MyPropertyLocators.structure_table)
+    my_property_page.get_element(MyPropertyLocators.structure_table).wait_for_element()
     assert my_property_page.url == my_property_page.driver.current_url
 
 

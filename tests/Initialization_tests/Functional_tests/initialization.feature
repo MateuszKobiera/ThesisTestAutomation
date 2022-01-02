@@ -7,8 +7,8 @@ Feature: Inicjacja Admina
     When Wpisuje poprawne dane inicjacji hasła
     Then Przekierowano na stronę logowania
 
-  Scenario: Walidacja podczas Inicjacji
-    Given Jestem na stronie inicjacji
-    When Wpisuje niepoprawne dane inicjacji
-    Then Nie przekierowano strony inicjacji
-    And Wyświetlono błędy z informacją o wymaganych danych inicjacji hasła
+#  Scenario: Walidacja podczas Inicjacji
+#    Given Jestem na stronie inicjacji
+#    When Wpisuje niepoprawne dane inicjacji
+#    Then Nie przekierowano strony inicjacji
+#    And Wyświetlono błędy z informacją o wymaganych danych inicjacji hasła

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++)
+        filterItems[i].hidden = false;
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>Building Ecosystem tests</h1>
+    <p>Report generated on 12-Dec-2021 at 21:30:55 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "py": "1.10.0", "pytest": "6.2.5"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.22000-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"bdd": "4.1.0", "html": "3.1.1", "metadata": "1.11.0", "order": "1.0.0", "pycharm": "0.7.0", "pytest_check": "1.0.4"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.9.4</td></tr></table>
+    <h2>Summary</h2>
+    <p>8 tests ran in 42.60 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">6 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">2 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[--Username is required-Password is required-]</td>
+          <td class="col-duration">5.25</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div class='image'><a target='_blank' href='screenshots/test_login_validation[--Username is required-Password is required-].png'><img src='screenshots/test_login_validation[--Username is required-Password is required-].png'></a></div></div>
+            <div class="log">request = &lt;FixtureRequest for &lt;Function test_login_validation[--Username is required-Password is required-]&gt;&gt;<br/><br/>    @pytest.mark.usefixtures(*function_args)<br/>    def scenario_wrapper(request):<br/>&gt;       _execute_scenario(feature, scenario, request)<br/><br/>C:\Users\mateu\AppData\Local\Programs\Python\Python39\lib\site-packages\pytest_bdd\scenario.py:165: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>C:\Users\mateu\AppData\Local\Programs\Python\Python39\lib\site-packages\pytest_bdd\scenario.py:136: in _execute_scenario<br/>    _execute_step_function(request, scenario, step, step_func)<br/>C:\Users\mateu\AppData\Local\Programs\Python\Python39\lib\site-packages\pytest_bdd\scenario.py:106: in _execute_step_function<br/>    return_value = step_func(**kwargs)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>login_page = &lt;frontend.objects.Pages.login_page.LoginPage object at 0x000001A7A8B85A60&gt;<br/>blad_nazwy_uzytkownika = &#x27;Username is required&#x27;<br/>blad_hasla = &#x27;Password is required&#x27;, blad_ogolny = &#x27;&#x27;<br/><br/>    @then(&#x27;Wyświetlono &quot;&lt;blad_nazwy_uzytkownika&gt;&quot; i &quot;&lt;blad_hasla&gt;&quot; i &quot;&lt;blad_ogolny&gt;&quot; podczas logowania&#x27;)<br/>    def step_impl(login_page, blad_nazwy_uzytkownika, blad_hasla, blad_ogolny):<br/>        if blad_nazwy_uzytkownika != &#x27;&#x27;:<br/>&gt;           assert login_page.get_username_validation() == blad_nazwy_uzytkownika<br/><span class="error">E           AssertionError: assert &#x27;Required&#x27; == &#x27;Username is required&#x27;</span><br/><br/>test_login.py:199: AssertionError<br/> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:15 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:15 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:15 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:15 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:15 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_login&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/> -----------------------------Captured log teardown------------------------------ <br/>2021-12-12 21:30:16 -     Test Logger -  INFO - Screenshot saved: D:\ThesisTestAutomation\reports\2021-12-12-21-30-12\screenshots\test_login_validation[--Username is required-Password is required-].png&quot;<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[Admin-Abcdefghij1ą--Password must only contain alphanumerical characters-]</td>
+          <td class="col-duration">5.26</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div class='image'><a target='_blank' href='screenshots/test_login_validation[Admin-Abcdefghij1\u0105--Password must only contain alphanumerical characters-].png'><img src='screenshots/test_login_validation[Admin-Abcdefghij1\u0105--Password must only contain alphanumerical characters-].png'></a></div></div>
+            <div class="log">request = &lt;FixtureRequest for &lt;Function test_login_validation[Admin-Abcdefghij1\u0105--Password must only contain alphanumerical characters-]&gt;&gt;<br/><br/>    @pytest.mark.usefixtures(*function_args)<br/>    def scenario_wrapper(request):<br/>&gt;       _execute_scenario(feature, scenario, request)<br/><br/>C:\Users\mateu\AppData\Local\Programs\Python\Python39\lib\site-packages\pytest_bdd\scenario.py:165: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>C:\Users\mateu\AppData\Local\Programs\Python\Python39\lib\site-packages\pytest_bdd\scenario.py:136: in _execute_scenario<br/>    _execute_step_function(request, scenario, step, step_func)<br/>C:\Users\mateu\AppData\Local\Programs\Python\Python39\lib\site-packages\pytest_bdd\scenario.py:106: in _execute_step_function<br/>    return_value = step_func(**kwargs)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>login_page = &lt;frontend.objects.Pages.login_page.LoginPage object at 0x000001A7A8B442E0&gt;<br/>blad_nazwy_uzytkownika = &#x27;&#x27;<br/>blad_hasla = &#x27;Password must only contain alphanumerical characters&#x27;<br/>blad_ogolny = &#x27;&#x27;<br/><br/>    @then(&#x27;Wyświetlono &quot;&lt;blad_nazwy_uzytkownika&gt;&quot; i &quot;&lt;blad_hasla&gt;&quot; i &quot;&lt;blad_ogolny&gt;&quot; podczas logowania&#x27;)<br/>    def step_impl(login_page, blad_nazwy_uzytkownika, blad_hasla, blad_ogolny):<br/>        if blad_nazwy_uzytkownika != &#x27;&#x27;:<br/>            assert login_page.get_username_validation() == blad_nazwy_uzytkownika<br/>        if blad_hasla != &#x27;&#x27;:<br/>&gt;           assert login_page.get_password_validation() == blad_hasla<br/><span class="error">E           AssertionError: assert &#x27;Password must have at least one special character&#x27; == &#x27;Password must only contain alphanumerical characters&#x27;</span><br/><br/>test_login.py:201: AssertionError<br/> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:46 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:46 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:46 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:46 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:46 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:46 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:46 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:46 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:46 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:46 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:46 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:46 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:46 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:46 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:46 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:46 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:47 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:47 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:47 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:47 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:47 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:47 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:47 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:47 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:47 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:47 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:47 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:47 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:47 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:47 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/> -----------------------------Captured log teardown------------------------------ <br/>2021-12-12 21:30:47 -     Test Logger -  INFO - Screenshot saved: D:\ThesisTestAutomation\reports\2021-12-12-21-30-12\screenshots\test_login_validation[Admin-Abcdefghij1u0105--Password must only contain alphanumerical characters-].png&quot;<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[Admin-a--Password must have at least 10 characters-]</td>
+          <td class="col-duration">5.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:20 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:20 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:20 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:20 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:20 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:20 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:20 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:20 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:20 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:20 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:20 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:21 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:21 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:21 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:21 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:21 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:21 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:21 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:21 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:21 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:21 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:21 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:21 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[Admin-abcdefghij--Password must have at least one upper case letter-]</td>
+          <td class="col-duration">5.12</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:25 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:25 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:25 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:25 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:25 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:25 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:25 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:25 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:25 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:25 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:25 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:26 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:26 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:26 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:26 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:26 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:26 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:26 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:26 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:26 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:26 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:26 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:26 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[Admin-ABCDEFGHIJ--Password must have at least one lower case letter-]</td>
+          <td class="col-duration">5.15</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:30 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:30 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:30 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:30 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:31 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:31 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:31 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:31 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[Admin-Abcdefghij--Password must have at least one digit-]</td>
+          <td class="col-duration">5.30</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:35 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:35 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:36 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:36 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:36 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:36 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[Admin-Abcdefghij1--Password must have at least one special character-]</td>
+          <td class="col-duration">5.15</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:41 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:41 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:41 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:41 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:41 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:41 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:41 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:41 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:41 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:41 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:41 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:41 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:42 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:42 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:42 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:42 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:42 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:42 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:42 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:42 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:42 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:42 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:42 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:42 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 21:30:42 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 21:30:42 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;login-screen_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/Login_tests/functional_tests/test_login.py::test_login_validation[AA-Smartspaces1!---Invalid credentials]</td>
+          <td class="col-duration">6.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 21:30:51 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:51 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:51 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:51 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 8s&quot;
+2021-12-12 21:30:51 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:51 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:51 -           Input -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:51 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:51 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:51 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_login&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:51 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_login&#x27;]//input found.&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:52 -           Input -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:52 -           Input -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;] found.&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Found element (&quot;//span[@id=&#x27;login-screen_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 21:30:52 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;login-screen_password&#x27;]&quot;
+2021-12-12 21:30:52 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;login-screen_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:52 -     BaseElement -  INFO - Element //span[@id=&#x27;login-screen_password&#x27;]//input found.&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:52 -          Button -  INFO - Waiting for element //button[@id=&#x27;login-screen_login&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:52 -          Button -  INFO - Element //button[@id=&#x27;login-screen_login&#x27;] found.&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Found element (&quot;//button[@id=&#x27;login-screen_login&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 21:30:52 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;login-screen_login&#x27;]&quot;
+2021-12-12 21:30:52 -          Button -  INFO - Element with xpath //button[@id=&#x27;login-screen_login&#x27;] was clicked&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Trying to find element (&#x27;//p&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-12 21:30:52 -       LoginPage -  INFO - Waiting for element //p with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:53 -       LoginPage -  INFO - Element //p found.&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Waiting for element //p with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Element //p found.&quot;
+2021-12-12 21:30:53 -       LoginPage -  INFO - Found element (&#x27;//p&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Waiting for element //p with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Element //p found.&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Element //p was found.&quot;
+2021-12-12 21:30:53 -       LoginPage -  INFO - Trying to find element (&#x27;//p&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-12 21:30:53 -       LoginPage -  INFO - Waiting for element //p with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 21:30:53 -       LoginPage -  INFO - Element //p found.&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Waiting for element //p with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Element //p found.&quot;
+2021-12-12 21:30:53 -       LoginPage -  INFO - Found element (&#x27;//p&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-12 21:30:53 -     BaseElement -  INFO - Trying to get text of element with xpath //p&quot;<br/></div></td></tr></tbody></table></body></html>

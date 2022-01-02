@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Modals.add_structure_modal_locators import AddToStructureLocators
+from frontend.locators.Modals.add_structure_modal_locators import AddToStructureLocators
 from frontend.objects.Modals.base_modal import BaseModal
 
 

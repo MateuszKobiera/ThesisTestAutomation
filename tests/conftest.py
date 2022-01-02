@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import pytest_html
+from py.xml import html
 from pytest_html import extras
 from selenium import webdriver
 
@@ -34,7 +35,7 @@ def log_in(login_page):
     login_page.choose_mode('Configuration')
     login_page.set_username('Admin')
     login_page.set_password('Smartspaces1!')
-    login_page.login()
+    login_page.click_login()
 
 
 @pytest.fixture
@@ -46,9 +47,21 @@ def pytest_html_report_title(report):
     report.title = "Building Ecosystem tests"
 
 
+# def pytest_html_results_table_header(cells):
+#     cells.insert(2, html.th("Description"))
+#     cells.insert(1, html.th("Time", class_="sortable time", col="time"))
+#     cells.pop()
+#
+#
+# def pytest_html_results_table_row(report, cells):
+#     cells.insert(2, html.td(report.description))
+#     cells.insert(1, html.td(datetime.datetime.utcnow(), class_="col-time"))
+#     cells.pop()
+
+
 def pytest_configure(config):
     main_dir: Path = Path(__file__).parent.parent
-    reports_dir: Path = main_dir.joinpath('Reports')
+    reports_dir: Path = main_dir.joinpath('reports')
     if not reports_dir.exists():
         reports_dir.mkdir()
     config.option.session_report_dir = reports_dir.joinpath(f'{datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}')
@@ -68,6 +81,7 @@ def pytest_runtest_makereport(item, call):
         extra = getattr(rep, 'extra', [])
         filename = f'screenshots/{item.name}.png'
         extra.append(extras.html(f"<div class='image'><a target='_blank' href='{filename}'><img src='{filename}'></a></div>"))
+        # extra.append(pytest_html.extras.url(item.name))
 
 
 @pytest.fixture(autouse=True)

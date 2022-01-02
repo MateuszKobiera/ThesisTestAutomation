@@ -1,18 +1,43 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.terms_condition_locators import TermsAndConditionsLocators
+from frontend.locators.Pages.terms_condition_locators import TermsAndConditionsLocators
 from frontend.objects.Pages.base_page import BasePage
 
 
 class TermsAndConditionsPage(BasePage):
 
-    def __init__(self, driver: webdriver) -> None:
+    def __init__(self, driver: webdriver, wait: bool = True) -> None:
         """
         :param driver:
         """
         super().__init__(driver)
         self.url = self.base_url + '#/system/initialization'
-        self.wait_for_element(TermsAndConditionsLocators.terms_condition_textbox)
+        if wait:
+            self.get_element(TermsAndConditionsLocators.terms_condition_textbox).wait_for_element()
+
+    @property
+    def terms_condition_textbox(self):
+        return self.get_element(TermsAndConditionsLocators.terms_condition_textbox)
+
+    @property
+    def privacy_policy_textbox(self):
+        return self.get_element(TermsAndConditionsLocators.privacy_policy_textbox)
+
+    @property
+    def terms_condition_checkbox(self):
+        return self.get_element(TermsAndConditionsLocators.terms_condition_checkbox)
+    
+    @property
+    def privacy_policy_checkbox(self):
+        return self.get_element(TermsAndConditionsLocators.privacy_policy_checkbox)
+    
+    @property
+    def save_button(self):
+        return self.get_element(TermsAndConditionsLocators.save_button)
+    
+    @property
+    def cancel_button(self):
+        return self.get_element(TermsAndConditionsLocators.cancel_button)
 
     def save(self):
         """
@@ -37,6 +62,8 @@ class TermsAndConditionsPage(BasePage):
         terms_textbox.click()
         self.driver.execute_script('var terms = document.getElementById("terms-and-conditions-textbox");'
                                    'terms.scrollTop = terms.scrollHeight;')
+        policy_textbox = self.get_element(TermsAndConditionsLocators.privacy_policy_textbox)
+        policy_textbox.click()
         self.driver.execute_script('var privacy = document.getElementById("privacy-policy-textbox");'
                                    'privacy.scrollTop = privacy.scrollHeight;')
 
@@ -57,5 +84,9 @@ class TermsAndConditionsPage(BasePage):
         Potwierdzenie inicjacji użytkownika
         :return:
         """
-        self.wait_for_element(TermsAndConditionsLocators.initialize_button)
-        self.get_element(TermsAndConditionsLocators.initialize_button).click()
+        element = self.get_element(TermsAndConditionsLocators.initialize_button)
+        element.wait_for_element()
+        element.click()
+
+    def click_download_policy_privacy(self):
+        self.get_element(TermsAndConditionsLocators.download_policy_privacy_button).click()

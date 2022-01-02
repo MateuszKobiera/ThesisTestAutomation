@@ -2,10 +2,10 @@ from copy import copy
 
 from selenium import webdriver
 
-from frontend.elements.base_element import BaseElement
+from frontend.components.base_component import BaseComponent
 
 
-class Table:
+class Table(BaseComponent):
     """
     Komponent tabeli
     """
@@ -16,11 +16,8 @@ class Table:
         :param driver:
         :param xpath:
         """
-        self.driver = driver
+        super().__init__(driver)
         self.xpath = xpath
-
-    def get_element(self, locator_xpath: str) -> webdriver:
-        return BaseElement(self.driver.find_element_by_xpath(locator_xpath), locator_xpath)
 
     def get_head_elements(self) -> list:
         """
@@ -66,9 +63,10 @@ class Table:
             table[row_name] = copy(table_row)
         return table
 
-    def delete_row(self, row_id: int = None, row_name: str = None) -> webdriver:
+    def delete_row(self, row_id: int = None, unique_column_name: str = None, row_name: str = None) -> webdriver:
         """
         Usunięcie wiersza
+        :param unique_column_name:
         :param row_id: numer wiersza, parametr opcjonalny
         :param row_name: unikalna nazwa wiersza, parametr opcjonalny
         :return: modal z potwierdzeniem usunięcia
@@ -76,16 +74,18 @@ class Table:
         if not row_id and not row_name:
             raise NameError('Należy wybrać, który wiersz usunąć poprzez parametr row_id lub row_name')
         if row_name:
-            for row in self.get_table():
+            for row in self.get_table(unique_column_name=unique_column_name):
                 if row_name in row.values():
                     row_id = row
-        delete_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"close")]'
+        delete_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"close")]', "Button"
         self.get_element(delete_button).click()
         return self.driver
 
-    def duplicate_row(self, row_id: int = None, row_name: str = None, confirmation: bool = False) -> (webdriver, None):
+    def duplicate_row(self, row_id: int = None, unique_column_name: str = None, row_name: str = None,
+                      confirmation: bool = False) -> (webdriver, None):
         """
         Duplikowanie wiersza
+        :param unique_column_name:
         :param row_id: numer wiersza, parametr opcjonalny
         :param row_name: unikalna nazwa wiersza, parametr opcjonalny
         :param confirmation: czy po duplikowanie konieczne jest potwierdzenie?, parametr opcjonalny
@@ -95,15 +95,37 @@ class Table:
         if not row_id and not row_name:
             raise NameError('Należy wybrać, który wiersz usunąć poprzez parametr row_id lub row_name')
         if row_name:
-            for row in self.get_table():
+            for row in self.get_table(unique_column_name=unique_column_name):
                 if row_name in row.values():
                     row_id = row
-        duplicate_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"copy")]'
+        duplicate_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"copy")]', "Button"
         self.get_element(duplicate_button).click()
         if confirmation is True:
             return self.driver
         else:
             return None
+
+    def edit_row(self, row_id: int = None, unique_column_name: str = None, row_name: str = None) -> webdriver:
+        """
+        Duplikowanie wiersza
+        :param unique_column_name:
+        :param row_id: numer wiersza, parametr opcjonalny
+        :param row_name: unikalna nazwa wiersza, parametr opcjonalny
+        :return: nic jeśli potwierdzenie nie jest wymagane,
+        modal z potwierdzeniem duplikowania jeśli potwierdzenie jest konieczne
+        """
+        if not row_id and not row_name:
+            raise NameError('Należy wybrać, który wiersz usunąć poprzez parametr row_id lub row_name')
+        if row_name:
+            table = self.get_table(unique_column_name=unique_column_name)
+            row_id = 0
+            for row in table:
+                row_id += 1
+                if row_name == row:
+                    break
+        edit_button = self.xpath + f'/tbody/tr[{row_id}]/td//i[contains(@class,"edit")]', "Button"
+        self.get_element(edit_button).click()
+        return self.driver
 
 
     # def scroll(self):

@@ -37,12 +37,13 @@ Feature: Test login page
     Then Przekierowano na stronę inicjacji danych
     And Wyświetlono błędy z informacją o wymaganych danych logowania
 
- @AutomationOnly @ManualE2E
+ @AutomationOnly @ManualE2E @Kolejne_logowanie_administratora
   Scenario Outline: Wyświetlanie błędów podczas logowania
     Given Jestem na stronie logowania
     When Wpisuje niepoprawne dane logowania "<login>" i "<haslo>"
     Then Przekierowano na stronę logowania
     And Wyświetlono "<blad_nazwy_uzytkownika>" i "<blad_hasla>" i "<blad_ogolny>" podczas logowania
+   # Kroki są zaimplementowane
 
     Examples: Login i hasło
       | login | haslo         | blad_nazwy_uzytkownika | blad_hasla                                           | blad_ogolny       |
@@ -55,14 +56,13 @@ Feature: Test login page
       | Admin | Abcdefghij1ą  |                        | Password must only contain alphanumerical characters |                   |
       | AA    | Smartspaces1! |                        |                                                      |Invalid credentials|
 
-  @AutomationOnly @ManualE2E
+  @AutomationOnly @ManualE2E @Pierwsze_logowanie_dla_użytkowników_innych_niż_'Admin'
   Scenario Outline: Wyświetlanie błędów podczas inicjacji konta innego niż Admin
-    Given Jestem na stronie logowania
-    # TODO zmienić na jestem na stronie inicjacji użytkownika
+    Given Jestem na stronie inicjacji danych jako User
     And Użytkownik Admin jest zainicjowany
-    And Użytkownik User1 jest stworzony, nie zainicjowany
+    And Użytkownik User jest stworzony, nie zainicjowany
     When Wpisuje niepoprawne dane inicjacji "<haslo>", "<potwierdzenie_hasla>"
-    Then Przekierowano na stronę inicjacji
+    Then Przekierowano na stronę inicjacji danych
     And Wyświetlono "<blad_hasla>" i "<blad_potwierdzenia_hasla>" podczas inicjacji
 
     Examples: Hasło i potwierdzenia hasła

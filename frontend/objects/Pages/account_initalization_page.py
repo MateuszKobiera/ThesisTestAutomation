@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from frontend.Locators.Pages.account_initialization_locators import AccountInitializationLocators
+from frontend.locators.Pages.account_initialization_locators import AccountInitializationLocators
 from frontend.objects.Modals.base_modal import BaseModal
 
 
@@ -12,7 +12,39 @@ class AccountInitializationPage(BaseModal):
         """
         super().__init__(driver)
         self.url = self.base_url + '#/account/activation'
-        self.wait_for_element(AccountInitializationLocators.company_input, timeout=20)
+        self.get_element(AccountInitializationLocators.company_input).wait_for_element(timeout=20)
+
+    @property
+    def password_input(self):
+        return self.get_element(AccountInitializationLocators.password_input)
+
+    @property
+    def password_confirmation_input(self):
+        return self.get_element(AccountInitializationLocators.password_confirmation_input)
+    
+    @property
+    def company_input(self):
+        return self.get_element(AccountInitializationLocators.company_input)
+    
+    @property
+    def first_name_input(self):
+        return self.get_element(AccountInitializationLocators.first_name_input)
+    
+    @property
+    def last_name_input(self):
+        return self.get_element(AccountInitializationLocators.last_name_input)
+    
+    @property
+    def role_input(self):
+        return self.get_element(AccountInitializationLocators.role_input)
+    
+    @property
+    def email_input(self):
+        return self.get_element(AccountInitializationLocators.email_input)
+    
+    @property
+    def phone_input(self):
+        return self.get_element(AccountInitializationLocators.phone_input)
 
     def save(self):
         """

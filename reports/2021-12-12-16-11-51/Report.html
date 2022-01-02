@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++)
+        filterItems[i].hidden = false;
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>Building Ecosystem tests</h1>
+    <p>Report generated on 12-Dec-2021 at 16:12:14 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "py": "1.10.0", "pytest": "6.2.5"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.22000-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"bdd": "4.1.0", "html": "3.1.1", "metadata": "1.11.0", "order": "1.0.0", "pycharm": "0.7.0", "pytest_check": "1.0.4"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.9.4</td></tr></table>
+    <h2>Summary</h2>
+    <p>1 tests ran in 23.11 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">1 failed</span>, <input checked="true" class="filter" data-test-result="error" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">2 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="error results-table-row">
+        <tr>
+          <td class="col-result">Error</td>
+          <td class="col-name">tests/Login_tests/E2E_test/test_login_E2E.py::test_pierwsze_logowanie_administratora::setup</td>
+          <td class="col-duration">4.92</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">@pytest.fixture<br/>    def login_api():<br/>&gt;       return LoginAPI()<br/><br/>tests\Login_tests\conftest.py:32: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>backend\login_api.py:8: in __init__<br/>    super().__init__()<br/>backend\Base_API_handler.py:15: in __init__<br/>    self.authorize()<br/>backend\Base_API_handler.py:46: in authorize<br/>    data_response = self.send_request(&#x27;post&#x27;, self.authentication, data=data)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;backend.login_api.LoginAPI object at 0x000001ED328531C0&gt;<br/>request_type = &#x27;post&#x27;, url = &#x27;authentication&#x27;<br/>kwargs = {&#x27;data&#x27;: &#x27;{&quot;login&quot;: &quot;Admin&quot;, &quot;password&quot;: &quot;Smartspaces1!&quot;, &quot;tool&quot;: &quot;Configuration&quot;}&#x27;}<br/>call = &lt;function post at 0x000001ED32763040&gt;, response = &lt;Response [401]&gt;<br/><br/>    def send_request(self, request_type: str, url: str, **kwargs) -&gt; dict:<br/>        &quot;&quot;&quot;<br/>        Wysłanie żądania do aplikacji po stronie API<br/>        :param request_type: typ żądania, tj. &#x27;post&#x27;, &#x27;put&#x27;, &#x27;get&#x27;, &#x27;patch&#x27; albo &#x27;delete&#x27;<br/>        :param url: ścieżka żądania, która będzie dodana do podstawowej ścieżki<br/>        :return: Słownik z wartością zwróconą<br/>        &quot;&quot;&quot;<br/>        call = getattr(requests, request_type)<br/>        try:<br/>            response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs)<br/>            if response.status_code not in [200, 201, 202]:<br/>&gt;               raise ValueError(response.json())<br/><span class="error">E               ValueError: {&#x27;errors&#x27;: [{&#x27;code&#x27;: &#x27;AUT-003&#x27;, &#x27;message&#x27;: &#x27;Password initialization must be done first.&#x27;}]}</span><br/><br/>backend\Base_API_handler.py:28: ValueError<br/> -----------------------------Captured log teardown------------------------------ <br/>2021-12-12 16:12:03 -     Test Logger -  INFO - Screenshot saved: D:\ThesisTestAutomation\reports\2021-12-12-16-11-51\screenshots\test_pierwsze_logowanie_administratora.png&quot;<br/></div></td></tr></tbody>
+      <tbody class="error results-table-row">
+        <tr>
+          <td class="col-result">Error</td>
+          <td class="col-name">tests/Login_tests/E2E_test/test_login_E2E.py::test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin::setup</td>
+          <td class="col-duration">4.91</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">@pytest.fixture<br/>    def login_api():<br/>&gt;       return LoginAPI()<br/><br/>tests\Login_tests\conftest.py:32: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>backend\login_api.py:8: in __init__<br/>    super().__init__()<br/>backend\Base_API_handler.py:15: in __init__<br/>    self.authorize()<br/>backend\Base_API_handler.py:46: in authorize<br/>    data_response = self.send_request(&#x27;post&#x27;, self.authentication, data=data)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;backend.login_api.LoginAPI object at 0x000001ED3289AE20&gt;<br/>request_type = &#x27;post&#x27;, url = &#x27;authentication&#x27;<br/>kwargs = {&#x27;data&#x27;: &#x27;{&quot;login&quot;: &quot;Admin&quot;, &quot;password&quot;: &quot;Smartspaces1!&quot;, &quot;tool&quot;: &quot;Configuration&quot;}&#x27;}<br/>call = &lt;function post at 0x000001ED32763040&gt;, response = &lt;Response [401]&gt;<br/><br/>    def send_request(self, request_type: str, url: str, **kwargs) -&gt; dict:<br/>        &quot;&quot;&quot;<br/>        Wysłanie żądania do aplikacji po stronie API<br/>        :param request_type: typ żądania, tj. &#x27;post&#x27;, &#x27;put&#x27;, &#x27;get&#x27;, &#x27;patch&#x27; albo &#x27;delete&#x27;<br/>        :param url: ścieżka żądania, która będzie dodana do podstawowej ścieżki<br/>        :return: Słownik z wartością zwróconą<br/>        &quot;&quot;&quot;<br/>        call = getattr(requests, request_type)<br/>        try:<br/>            response = call(self.base_url + url, headers=BaseAPI.headers, **kwargs)<br/>            if response.status_code not in [200, 201, 202]:<br/>&gt;               raise ValueError(response.json())<br/><span class="error">E               ValueError: {&#x27;errors&#x27;: [{&#x27;code&#x27;: &#x27;AUT-003&#x27;, &#x27;message&#x27;: &#x27;Password initialization must be done first.&#x27;}]}</span><br/><br/>backend\Base_API_handler.py:28: ValueError<br/> -----------------------------Captured log teardown------------------------------ <br/>2021-12-12 16:12:08 -     Test Logger -  INFO - Screenshot saved: D:\ThesisTestAutomation\reports\2021-12-12-16-11-51\screenshots\test_pierwsze_logowanie_dla_uzytkownikow_innych_niz_admin.png&quot;<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">tests/Initialization_tests/E2E_tests/test_initialization_E2E.py::test_inicjacja_zakonczona_sukcesem</td>
+          <td class="col-duration">8.58</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div><div class='image'><a target='_blank' href='screenshots/test_inicjacja_zakonczona_sukcesem.png'><img src='screenshots/test_inicjacja_zakonczona_sukcesem.png'></a></div></div>
+            <div class="log">initialization_page = &lt;frontend.objects.Pages.initialization_page.InitializationPage object at 0x000001ED327F0CA0&gt;<br/><br/>    @pytest.mark.order(1)<br/>    def test_inicjacja_zakonczona_sukcesem(initialization_page):<br/>        &quot;&quot;&quot;<br/>        Testuje walidacje i dane strony inicjacji<br/>        WARUNKI WSTĘPNE:<br/>            - Użytkownik nie jest zainicjowany<br/>        OPIS KROKU:<br/>            1. Otwórz przeglądarkę internetową w aplikacji.<br/>            2. Sprawdź, czy jest tytuł &#x27;Building Ecosystem&#x27;<br/>            3. Sprawdź, czy są 2 pola do wprowadzenia danych dla użytkownika „Admin”.<br/>            4. Kliknij przycisk &#x27;Change password&#x27;<br/>            5. Wpisz hasło do pierwszego pola do wprowadzenia danych<br/>            6. W przypadku pierwszego hasła należy wprowadzić poprawne dane. Dla drugiego wejścia uzupełnij poprawne dane,<br/>                ale inne niż dla pierwszego wejścia.<br/>            7. Wypełnij oba wejścia poprawnym hasłem i kliknij przycisk &#x27;Confirm password&#x27;<br/>        OCZEKIWANY REZULTAT:<br/>            1. Pojawiła się strona inicjacji.<br/>            2. Tytuł jest widoczny.<br/>            3. Istnieje jedno pole do wprowadzenia danych dla użytkownika „Admin”.<br/>                Istnieje drugie pole do potwierdzenia hasła dla użytkownika „Admin”.<br/>            4. Nie możemy zapisać hasła administratora z pustymi danymi wejściowymi.<br/>            Pokazała się wskazówka sprawdzania poprawności informująca, że wymagane są hasła dla obu pól.<br/>            5. Możemy wprowadzić dane wejściowe. Wyświetla się podpowiedź walidacji przy wprowadzaniu haseł<br/>            6. Wyświetlił się komunikat walidacji sprawdzania poprawności, który informuje, że hasła nie są zgodne.<br/>            7. Hasło zostało zapisane. Przekierowano na stronę logowania.<br/>        &quot;&quot;&quot;<br/>        # step 1<br/>        assert initialization_page.driver.current_url == initialization_page.url<br/>    <br/>        # step 2<br/>        assert initialization_page.get_title() == initialization_page.title<br/>    <br/>        # step 3<br/>        assert initialization_page.password_input.is_element_visible()<br/>        assert initialization_page.password_input.get_label() == &#x27;Enter password of the “Admin” account&#x27;<br/>        assert initialization_page.password_confirmation_input.is_element_visible()<br/>        assert initialization_page.password_confirmation_input.get_label() == &#x27;Confirm password of the “Admin” account&#x27;<br/>    <br/>        # step 4<br/>        initialization_page.change_password_button.click()<br/>        assert initialization_page.password_input.get_validation() == &#x27;Password is required&#x27;<br/>    <br/>        # step 5<br/>        for password in PASSWORD_VALIDATION:<br/>            initialization_page.set_passwords(password, password)<br/>&gt;           assert initialization_page.password_input.get_validation() == PASSWORD_VALIDATION[password]<br/><span class="error">E           AssertionError: assert &#x27;Password must have at least one special character&#x27; == &#x27;Password must only contain alphanumerical characters&#x27;</span><br/><br/>tests\Initialization_tests\E2E_tests\test_initialization_E2E.py:51: AssertionError<br/> -------------------------------Captured log setup------------------------------- <br/>2021-12-12 16:11:53 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:53 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;<br/> -------------------------------Captured log call-------------------------------- <br/>2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&#x27;//h2&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //h2 with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //h2 found.&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //h2 with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //h2 found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&#x27;//h2&#x27;, &#x27;Base&#x27;)&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Trying to get text of element with xpath //h2&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] was found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;label&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;label&quot;)] found.&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;label&quot;)]&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] was found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]/div[contains(@class,&quot;label&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]/div[contains(@class,&quot;label&quot;)] found.&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]/div[contains(@class,&quot;label&quot;)]&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;initialize-password_submit&#x27;]&quot;
+2021-12-12 16:11:54 -          Button -  INFO - Element with xpath //button[@id=&#x27;initialize-password_submit&#x27;] was clicked&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]//input found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:54 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:54 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:54 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;initialize-password_submit&#x27;]&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Element with xpath //button[@id=&#x27;initialize-password_submit&#x27;] was clicked&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]//input found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;initialize-password_submit&#x27;]&quot;
+2021-12-12 16:11:55 -          Button -  INFO - Element with xpath //button[@id=&#x27;initialize-password_submit&#x27;] was clicked&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:55 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]//input found.&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:55 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:55 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;initialize-password_submit&#x27;]&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Element with xpath //button[@id=&#x27;initialize-password_submit&#x27;] was clicked&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]//input found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;initialize-password_submit&#x27;]&quot;
+2021-12-12 16:11:56 -          Button -  INFO - Element with xpath //button[@id=&#x27;initialize-password_submit&#x27;] was clicked&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:56 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]//input found.&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:56 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Trying to find element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:57 -          Button -  INFO - Waiting for element //button[@id=&#x27;initialize-password_submit&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -          Button -  INFO - Element //button[@id=&#x27;initialize-password_submit&#x27;] found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Found element (&quot;//button[@id=&#x27;initialize-password_submit&#x27;]&quot;, &#x27;Button&#x27;)&quot;
+2021-12-12 16:11:57 -          Button -  INFO - Trying to click element with xpath //button[@id=&#x27;initialize-password_submit&#x27;]&quot;
+2021-12-12 16:11:57 -          Button -  INFO - Element with xpath //button[@id=&#x27;initialize-password_submit&#x27;] was clicked&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]//input found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;] found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password_confirmation&#x27;]&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password_confirmation&#x27;]//input found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Trying to find element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 15s&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;] found.&quot;
+2021-12-12 16:11:57 - InitializationPage -  INFO - Found element (&quot;//span[@id=&#x27;initialize-password_password&#x27;]&quot;, &#x27;Input&#x27;)&quot;
+2021-12-12 16:11:57 -           Input -  INFO - Trying to get base element with xpath //span[@id=&#x27;initialize-password_password&#x27;]&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 5s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Waiting for element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] with poll frequency 0.1s and timeout 1s&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] found.&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Element //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)] was found.&quot;
+2021-12-12 16:11:57 -     BaseElement -  INFO - Trying to get text of element with xpath //span[@id=&#x27;initialize-password_password&#x27;]/div[contains(@class,&quot;validation&quot;)]&quot;<br/> -----------------------------Captured log teardown------------------------------ <br/>2021-12-12 16:11:58 -     Test Logger -  INFO - Screenshot saved: D:\ThesisTestAutomation\reports\2021-12-12-16-11-51\screenshots\test_inicjacja_zakonczona_sukcesem.png&quot;<br/></div></td></tr></tbody></table></body></html>
